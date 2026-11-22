@@ -816,10 +816,10 @@ const C3D = (() => {
     return {ok:false, M, hl:v, txt:`${i+1}-ci görünüşdəki kimi üstdə ${nm(v[0])}, öndə ${nm(v[1])} qoyanda sağda <b>${nm(real)}</b> görünür, ${nm(v[2])} isə solda qalır — güzgü əksi ✗`};
   }
 
-  function html(q, order){ return `<div class="c3d" data-q="${q.id}" data-order="${order.join(',')}"></div>`; }
+  function html(q, order, pre){ return `<div class="c3d" data-q="${q.id}" data-order="${order.join(',')}"${pre?' data-mode="pre"':''}></div>`; }
 
   function mount(el){
-    const q=byId[el.dataset.q], order=el.dataset.order.split(',').map(Number);
+    const q=byId[el.dataset.q], order=el.dataset.order.split(',').map(Number), pre=el.dataset.mode==='pre';
     const views = q.layout==='views' ? q.items.map(i=>i.cube) : null;
     let nets;
     if(q.check==='netViews') nets=order.map(oi=>Cube.matchViews(q.opts[oi].net, views));
@@ -828,7 +828,8 @@ const C3D = (() => {
     const s=Math.max(44, Math.min(74, Math.floor((w-24)/(cols+0.6)), Math.floor(300/(nrows+0.6))));
 
     let btns='', btns2='';
-    if(q.check==='can'||q.check==='cannot')
+    if(pre && q.check!=='netViews') btns='';
+    else if(q.check==='can'||q.check==='cannot')
       btns=order.map((oi,d)=>`<button class="btn sm" data-c3="opt" data-i="${oi}">${LET[d]} variantı</button>`).join('');
     else if(q.check==='opp'){
       const o=Cube.opposites(nets[0].faces)[q.of];
@@ -840,7 +841,7 @@ const C3D = (() => {
       btns=order.map((oi,d)=>`<button class="btn sm" data-c3="net" data-k="${d}">${LET[d]} açılışı</button>`).join('');
       btns2=views.map((v,i)=>`<button class="btn sm" data-c3="view" data-i="${i}">${i+1}-ci görünüş</button>`).join('');
     }
-    el.innerHTML=`<div class="c3h"><b>3D baxış</b> <span class="muted small">· kubu barmaqla / siçanla sürüşdürərək fırladın</span></div>
+    el.innerHTML=`<div class="c3h"><b>3D baxış</b> <span class="muted small">· kubu barmaqla / siçanla sürüşdürərək fırladın${pre?'. Cavab göstərilmir — özünüz yoxlayın.':''}</span></div>
       ${q.check==='netViews'?`<div class="small" style="margin-bottom:6px">Açılış: <b class="c3n"></b></div>`:''}
       <div class="stage" style="--s:${s}px;height:${Math.round(s*(Math.max(nrows,3)+1.4))}px"><div class="wrap3"></div></div>
       <div class="row-btns c3c"><button class="btn sm pri" data-c3="fold">Qatla</button>
@@ -862,7 +863,7 @@ const C3D = (() => {
       const js=T.cells.map(c=>c.j), is=T.cells.map(c=>c.i);
       offX=(T.root.j+0.5-(Math.min(...js)+Math.max(...js)+1)/2)*s; offY=(T.root.i+0.5-(Math.min(...is)+Math.max(...is)+1)/2)*s;
       cancelAnimationFrame(st.anim); st.p=0; st.M=ID; st.pitch=VIEW_PITCH; st.yaw=VIEW_YAW;
-      if(nlab) nlab.textContent=LET[k]+(k===order.indexOf(q.ans)?' (doğru cavab)':'');
+      if(nlab) nlab.textContent=LET[k]+(!pre&&k===order.indexOf(q.ans)?' (doğru cavab)':'');
       apply();
     }
     function apply(){
@@ -895,6 +896,7 @@ const C3D = (() => {
         msg.textContent='Başlanğıc vəziyyət.'; animFold(0); return; }
       if(a==='net'){
         const k=+b.dataset.k; setActive(b,'net'); setActive(null,'view'); load(k);
+        if(pre){ requestAnimationFrame(()=>animFold(1)); msg.innerHTML=`<b>${LET[k]} açılışı</b> qatlanır. Görünüş düymələri ilə kubu həmin vəziyyətə gətirib müqayisə edin.`; return; }
         const n=nets[k]; let r=null; for(let i=0;i<views.length;i++){ const t=viewText(n.faces, views[i], i); if(!t.ok){ r=t; break; } }
         if(!r){ const t=viewText(n.faces, views[0], 0); requestAnimationFrame(()=>turn(t.M)); highlight(t.hl);
           msg.innerHTML=`<b>${LET[k]} açılışı</b>: qatlananda hər üç görünüş alınır — <b>doğru ✓</b>. Görünüş düymələri ilə yoxlayın.`; }
@@ -902,7 +904,12 @@ const C3D = (() => {
         return;
       }
       if(a==='view' && views){
-        const i=+b.dataset.i; setActive(b,'view'); const t=viewText(faces, views[i], i); turn(t.M); highlight(t.hl);
+        const i=+b.dataset.i; setActive(b,'view');
+        if(pre){ const v=views[i], M=Cube.orient(faces,{[v[0]]:UP,[v[1]]:FRONT}), L=nlab?nlab.textContent:'';
+          if(M){ turn(M); highlight([v[0],v[1]]); msg.innerHTML=`<b>${L} açılışı</b>: üstdə ${nm(v[0])}, öndə ${nm(v[1])} qoyuldu. Sağ üzü ${i+1}-ci görünüşlə müqayisə edin.`; }
+          else { turn(Cube.orient(faces,{[v[1]]:FRONT})); highlight([v[0],v[1]]); msg.innerHTML=`<b>${L} açılışı</b>: bu açılışda ${nm(v[0])} ilə ${nm(v[1])} qarşı-qarşıyadır — onları eyni anda üstə və önə qoymaq olmur.`; }
+          return; }
+        const t=viewText(faces, views[i], i); turn(t.M); highlight(t.hl);
         msg.innerHTML = q.check==='netViews' ? `${nlab?'<b>'+nlab.textContent.split(' ')[0]+' açılışı</b>, ':''}${t.txt}` :
           `${i+1}-ci görünüş: üstdə ${nm(views[i][0])}, öndə ${nm(views[i][1])}, sağda ${nm(views[i][2])}.`;
         return;
@@ -927,8 +934,9 @@ const C3D = (() => {
     stage.addEventListener('pointermove', e=>{ if(!drag) return; st.yaw=drag.yw+(e.clientX-drag.x)*0.6; st.pitch=drag.p-(e.clientY-drag.y)*0.6; apply(); });
     const end=()=>{ drag=null; stage.classList.remove('drag'); };
     stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
-    load(q.check==='netViews' ? order.indexOf(q.ans) : 0);
-    if(q.check==='netViews'){ const b=el.querySelector(`[data-c3="net"][data-k="${order.indexOf(q.ans)}"]`); if(b) b.classList.add('on'); }
+    const k0 = q.check==='netViews' && !pre ? order.indexOf(q.ans) : 0;
+    load(k0);
+    if(q.check==='netViews'){ const b=el.querySelector(`[data-c3="net"][data-k="${k0}"]`); if(b) b.classList.add('on'); }
   }
   function mountAll(root){ root.querySelectorAll('.c3d:not([data-m])').forEach(el=>{ el.dataset.m='1'; mount(el); }); }
   return {html, mountAll, viewText};
@@ -969,7 +977,8 @@ function startTimer(){ stopTimer(); S.timerId=setInterval(()=>{
 }, 250); }
 function stopTimer(){ if(S.timerId){ clearInterval(S.timerId); S.timerId=null; } }
 
-function go(view){ S.view=view; S.confirm=null; S.hint=''; render(); window.scrollTo(0,0); }
+const PRE3D=new Set(['opp','can','cannot','netViews']); // cavabdan əvvəl 3D açıla bilən sual növləri
+function go(view){ S.pre3d=false; S.view=view; S.confirm=null; S.hint=''; render(); window.scrollTo(0,0); }
 
 /* ---------- render helpers ---------- */
 function tile(fig, cls=''){ return fig===null ? `<div class="tile qm ${cls}"><span>?</span></div>` : `<div class="tile ${cls}">${figSVG(fig)}</div>`; }
@@ -1071,7 +1080,8 @@ function viewQuiz(){
         <div class="row-btns" style="justify-content:center"><button class="btn pri" data-act="finish">Bəli, bitir</button><button class="btn" data-act="cancelFinish">Davam et</button></div></div>`; }
   } else {
     body+= done ? feedbackHTML(q,s)+`<div class="actions"><button class="btn pri" data-act="next" id="nextBtn">${s.i===N-1?'Nəticəni gör':'Növbəti sual'} <kbd>Enter</kbd></button></div>`
-                : `<div class="actions"><button class="btn pri" data-act="confirm">Təsdiqlə <kbd>Enter</kbd></button></div>`;
+                : `<div class="actions"><button class="btn pri" data-act="confirm">Təsdiqlə <kbd>Enter</kbd></button>${PRE3D.has(q.check)?`<button class="btn" data-act="pre3d" aria-expanded="${S.pre3d}">${S.pre3d?'3D-ni bağla':'3D bax'}</button>`:''}</div>
+                  ${PRE3D.has(q.check)&&S.pre3d?C3D.html(q,s.order[q.id],true):''}`;
   }
   return head+body+'</div>';
 }
@@ -1140,7 +1150,10 @@ function render(){
 function pick(d){
   const s=S.sess, id=s.ids[s.i]; if(!s||s.done[id]) return;
   if(d<0||d>=s.order[id].length) return;
-  s.sel[id]=d; S.hint=''; render();
+  s.sel[id]=d; S.hint='';
+  if(s.mode==='exam'){ render(); return; }
+  document.querySelectorAll('.opts .opt').forEach((b,i)=>{ b.classList.toggle('sel', i===d); b.setAttribute('aria-checked', String(i===d)); });
+  const h=document.getElementById('hint'); if(h) h.textContent='';
 }
 function confirmAnswer(){
   const s=S.sess, id=s.ids[s.i], q=byId[id];
@@ -1154,7 +1167,7 @@ function confirmAnswer(){
 function nextQ(){
   const s=S.sess;
   if(s.mode==='exam'){ if(s.i<s.ids.length-1){ s.i++; S.confirm=null; S.hint=''; render(); } else { S.confirm='finish'; render(); } return; }
-  if(s.i<s.ids.length-1){ s.i++; S.hint=''; render(); window.scrollTo(0,0); } else { s.finishedAt=Date.now(); go('result'); }
+  if(s.i<s.ids.length-1){ s.i++; S.hint=''; S.pre3d=false; render(); window.scrollTo(0,0); } else { s.finishedAt=Date.now(); go('result'); }
 }
 function finishExam(timeout){
   const s=S.sess; if(!s||s.finished) return; s.finished=true; s.finishedAt=Date.now(); s.timeout=!!timeout; stopTimer();
@@ -1175,6 +1188,7 @@ const ACT = {
   help: ()=>{ S.help=true; render(); }, closeHelp: ()=>{ S.help=false; render(); },
   pick: el=>pick(+el.dataset.d),
   confirm: ()=>confirmAnswer(),
+  pre3d: ()=>{ S.pre3d=!S.pre3d; render(); if(S.pre3d){ const c=document.querySelector('.c3d'); if(c) c.scrollIntoView({block:'nearest',behavior:'smooth'}); } },
   next: ()=>{ S.sess.mode==='exam'? nextQ() : confirmAnswer(); },
   prev: ()=>{ const s=S.sess; if(s.i>0){ s.i--; S.confirm=null; render(); } },
   jump: el=>{ S.sess.i=+el.dataset.i; S.confirm=null; render(); },
