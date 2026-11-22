@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fiqur Məntiqi — Məşq Platforması</title>
+<style>
+/* ============================================================
+   FİQUR MƏNTİQİ — tək faylda məşq platforması
+   Struktur:  1) Stil   2) SVG mühərriki   3) Kub həlledicisi
+              4) SUAL BANKI   5) Yaddaş   6) Ekranlar və idarəetmə
+   ============================================================ */
+:root{
+  --bg:#f3f1ec; --card:#ffffff; --ink:#151515; --muted:#5b5953; --line:#d8d4cb; --soft:#ece9e2;
+  --acc:#1f4bb8; --acc-ink:#ffffff; --ok:#16703a; --okbg:#e2f1e6; --bad:#ad2418; --badbg:#f7e3e0;
+  --fig-paper:#ffffff; --fig-ink:#141414; --fig-mid:#a0a0a0;
+  --r:10px;
+}
+[data-theme="dark"]{
+  --bg:#15171a; --card:#1e2125; --ink:#e8e6e1; --muted:#a29f98; --line:#353940; --soft:#272b30;
+  --acc:#8fb0ff; --acc-ink:#0d1426; --ok:#71d192; --okbg:#1d3326; --bad:#ff8b80; --badbg:#3b2220;
+  --fig-paper:#eeece6; --fig-ink:#121212; --fig-mid:#9a9a9a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.wrap{max-width:880px;margin:0 auto;padding:16px 16px 64px}
+header.top{display:flex;align-items:center;gap:12px;padding:4px 0 14px;border-bottom:1px solid var(--line);margin-bottom:18px}
+header.top h1{font-size:18px;margin:0;letter-spacing:.2px;font-weight:700}
+header.top .sp{flex:1}
+.btn{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:15px;line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:600}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;font-size:14px}
+.btn:disabled{opacity:.45;cursor:default}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+kbd{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--muted);background:var(--card)}
+h2{font-size:17px;margin:22px 0 10px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.cat h3{margin:0 0 4px;font-size:16px}
+.cat .meta{font-size:14px;color:var(--muted);margin-bottom:12px}
+.bar{height:6px;background:var(--soft);border-radius:3px;overflow:hidden;margin:8px 0 12px}
+.bar i{display:block;height:100%;background:var(--ink)}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--card);padding:6px 12px;cursor:pointer;font-size:14px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:600}
+.cfg{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:center;margin:10px 0 14px;font-size:14px}
+  .cfg .seg{justify-self:start}
+label.chk{display:inline-flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+/* ---------- question screen ---------- */
+.qhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.qhead .prog{font-weight:600}
+.timer{font:600 16px ui-monospace,SFMono-Regular,Menlo,monospace;padding:4px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card)}
+.timer.warn{color:var(--bad);border-color:var(--bad)}
+.tag{font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:1px 9px}
+.qtext{font-size:17px;font-weight:600;margin:6px 0 14px}
+.stem{display:grid;gap:8px;justify-content:center;margin:0 auto 18px}
+.stem.row{grid-template-columns:repeat(var(--n),minmax(0,96px))}
+.stem.grid{grid-template-columns:repeat(var(--c),minmax(0,96px));gap:0;border:1.5px solid var(--fig-ink);width:max-content;max-width:100%;background:var(--fig-ink)}
+.stem.grid .tile{border-radius:0;border:0;outline:1px solid var(--fig-ink)}
+.stem.analogy{grid-template-columns:minmax(0,86px) 24px minmax(0,86px) 26px minmax(0,86px) 24px minmax(0,86px);align-items:center}
+.stem.analogy .op{text-align:center;color:var(--muted);font-size:20px}
+.stem.analogy .sep{border-left:2px solid var(--line);height:60%;justify-self:center}
+.stem.views{grid-template-columns:repeat(var(--n),minmax(0,120px));gap:14px}
+.stem.net{grid-template-columns:minmax(0,1fr);justify-items:center}
+.tile{aspect-ratio:1;background:var(--fig-paper);border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tile svg{width:100%;height:100%;display:block}
+.tile.big{aspect-ratio:auto;padding:10px;width:100%}
+.tile.big svg{height:auto}
+.tile.qm span{font-size:34px;font-weight:700;color:#7a7a7a}
+.tile.qm{border:2px dashed #9a9a9a}
+.vlab{font-size:12px;color:var(--muted);text-align:center;margin-top:4px}
+.opts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;max-width:620px;margin:0 auto}
+.opt{border:2px solid var(--line);background:var(--card);border-radius:10px;padding:6px 6px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:stretch;gap:4px;transition:none}
+.opts.wide{grid-template-columns:repeat(auto-fit,minmax(104px,1fr));max-width:720px}
+.opt .fig{aspect-ratio:1;background:var(--fig-paper);border-radius:6px;overflow:hidden}
+.opt .fig svg{width:100%;height:100%;display:block}
+.opt .lab{display:flex;justify-content:center;gap:6px;align-items:center;font-size:15px}
+.opt:hover{border-color:var(--muted)}
+.opt.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset}
+.opt.right{border-color:var(--ok);background:var(--okbg)}
+.opt.wrong{border-color:var(--bad);background:var(--badbg)}
+.opt.dim{opacity:.55}
+.opt[disabled]{cursor:default}
+.actions{display:flex;gap:10px;justify-content:center;margin:18px 0 6px;flex-wrap:wrap}
+.feedback{margin-top:16px;border-radius:var(--r);padding:12px 14px;border:1px solid}
+.feedback.ok{background:var(--okbg);border-color:var(--ok)}
+.feedback.bad{background:var(--badbg);border-color:var(--bad)}
+.feedback .h{font-weight:700;margin-bottom:4px}
+.feedback p{margin:4px 0}
+.feedback ul{margin:6px 0 0;padding-left:20px;font-size:15px}
+.hint{color:var(--bad);text-align:center;font-size:14px;min-height:20px;margin-top:6px}
+.palette{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:16px}
+.palette button{width:34px;height:30px;border:1px solid var(--line);background:var(--card);border-radius:6px;cursor:pointer;font-size:13px}
+.palette button.ans{background:var(--soft);font-weight:600}
+.palette button.cur{border:2px solid var(--acc)}
+.confirm{margin-top:14px;text-align:center}
+/* ---------- results ---------- */
+.score{display:flex;gap:22px;flex-wrap:wrap;align-items:baseline}
+.score .big{font-size:40px;font-weight:700;line-height:1}
+table.st{width:100%;border-collapse:collapse;font-size:15px}
+table.st th,table.st td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+table.st td.n{text-align:right;font-variant-numeric:tabular-nums;width:52px}
+table.st tr.weak td:first-child{font-weight:700}
+.pbar{height:8px;background:var(--soft);border-radius:4px;overflow:hidden;min-width:80px}
+.pbar i{display:block;height:100%;background:var(--ink)}
+details.rv{border:1px solid var(--line);border-radius:8px;margin:8px 0;background:var(--card)}
+details.rv summary{cursor:pointer;padding:10px 12px;font-size:15px}
+details.rv .in{padding:4px 12px 14px}
+.list{display:flex;flex-direction:column;gap:6px}
+.li{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--card);font-size:14px}
+.li .t{flex:1}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.overlay .card{max-width:420px;width:100%}
+.overlay table td{padding:4px 8px 4px 0;font-size:15px}
+/* 3D kub */
+.c3d{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.c3d .c3h{margin-bottom:6px}
+.c3d .stage{position:relative;perspective:1000px;overflow:hidden;touch-action:none;cursor:grab;background:var(--card);border:1px solid var(--line);border-radius:8px;user-select:none;-webkit-user-select:none}
+.c3d .stage.drag{cursor:grabbing}
+.c3d .wrap3{position:absolute;left:50%;top:50%;width:var(--s);height:var(--s);margin:calc(var(--s) / -2) 0 0 calc(var(--s) / -2);transform-style:preserve-3d}
+.c3d .f3{position:absolute;left:0;top:0;width:100%;height:100%;transform-style:preserve-3d}
+.c3d .f3[data-dir="R"]{left:100%;transform-origin:0 50%}
+.c3d .f3[data-dir="L"]{left:-100%;transform-origin:100% 50%}
+.c3d .f3[data-dir="D"]{top:100%;transform-origin:50% 0}
+.c3d .f3[data-dir="U"]{top:-100%;transform-origin:50% 100%}
+.c3d .sd{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.c3d .sd svg{width:100%;height:100%;display:block}
+.c3d .fr{background:var(--fig-paper)}
+.c3d .fr.hl{outline:4px solid var(--acc);outline-offset:-4px}
+.c3d .bk{transform:rotateY(180deg);background:#cdc8bd;outline:1px solid #8a867e;outline-offset:-1px}
+.c3d .c3c{margin-top:8px}
+.c3d .c3c .btn.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset;font-weight:600}
+.c3d .c3r{flex:1;min-width:120px;accent-color:var(--acc)}
+.c3d .c3m{margin-top:8px;min-height:2.6em}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+@media (max-width:560px){
+  .wrap{padding:12px 10px 56px}
+  .opts{gap:6px}
+  .opt{padding:4px 4px 2px;border-radius:8px}
+  .opt kbd{display:none}
+  .stem{gap:5px}
+  .qtext{font-size:16px}
+  .stem.analogy{grid-template-columns:minmax(0,72px) 16px minmax(0,72px) 18px minmax(0,72px) 16px minmax(0,72px)}
+  .stem.analogy .op{font-size:16px}
+}
+/* SVG figure classes */
+.s{stroke:var(--fig-ink);stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round}
+.sv{stroke:var(--fig-ink);stroke-width:2.4;stroke-linecap:round;vector-effect:non-scaling-stroke;fill:none}
+.thick{stroke-width:4.5}
+.fo{fill:none}.fn{fill:var(--fig-paper)}.fb{fill:var(--fig-ink)}.fg{fill:var(--fig-mid)}.fh{fill:url(#hatch)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="7" height="7" style="fill:var(--fig-paper)"/>
+      <line x1="0" y1="0" x2="0" y2="7" style="stroke:var(--fig-ink);stroke-width:2.2"/>
+    </pattern>
+  </defs>
+</svg>
+<div class="wrap" id="app"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   2) SVG MÜHƏRRİKİ
+   Hər fiqur 100×100 koordinat qutusunda çəkilir.
+   Fiqur = primitivlər massivi, məs.: [{k:'circle', s:30, f:'b'}]
+   Ümumi sahələr (hamısı könüllü):
+     x,y   – mərkəz (default 50,50)
+     s     – ölçü (radius / yarı-tərəf / uzunluq)
+     rot   – dönmə bucağı, dərəcə, saat əqrəbi istiqamətində (0 = yuxarı)
+     fx,fy – true: şaquli / üfüqi oxa görə güzgü əksi (dönmədən ƏVVƏL tətbiq olunur)
+     f     – doldurma: 'n' ağ (default), 'b' qara, 'g' boz, 'h' ştrix, 'o' şəffaf
+     w     – xətt qalınlığı
+   Primitivlər:
+     circle, square, ngon{n}, star, arrow, flag, poly{pts:[[x,y]..] mərkəzə nisbətən},
+     line{x1,y1,x2,y2 – mütləq}, ray{a – bucaq}, rays{d:['N','NE','E','SE','S','SW','W','NW']},
+     dots{n, sh:'c'|'s'|'t', r, gap}, pie{n, c:{sektor:'b'|'h'|'g'}}, grid{n, on:[xana indeksləri]},
+     face{sym} – kub üzü kimi kvadrat + simvol
+   Xüsusi fiqurlar:  {net:{rows:[...], faces:{A:'dot',...}}}  – kub açılışı
+                     {cube:['üst','ön(sol)','sağ']}               – izometrik kub
+   Kub simvolları (90° dönməyə görə simmetrikdir):
+     dot, ring, bull, plus, x, sq, esq, dots4, black, grid, xfull, blank, blank2
+     tri (▽) istiqamətlidir: həlledici onun istiqamətini nəzərə almır, 3D baxış isə düzgün göstərir.
+     Qeyd: kubun üst üzündə plus və x bir-birinə bənzəyir — bir kubda ikisini birlikdə işlətməyin.
+   ============================================================ */
+const SYM = {
+  dot:  '<circle cx="50" cy="50" r="17" class="fb"/>',
+  ring: '<circle cx="50" cy="50" r="23" class="sv fn"/>',
+  bull: '<circle cx="50" cy="50" r="28" class="sv fn"/><circle cx="50" cy="50" r="10" class="fb"/>',
+  plus: '<path d="M50 20V80M20 50H80" class="sv thick"/>',
+  x:    '<path d="M27 27L73 73M73 27L27 73" class="sv thick"/>',
+  sq:   '<rect x="31" y="31" width="38" height="38" class="fb"/>',
+  dots4:'<circle cx="28" cy="28" r="9" class="fb"/><circle cx="72" cy="28" r="9" class="fb"/><circle cx="28" cy="72" r="9" class="fb"/><circle cx="72" cy="72" r="9" class="fb"/>',
+  black:'<rect x="0" y="0" width="100" height="100" class="fb"/>',
+  esq:  '<rect x="27" y="27" width="46" height="46" class="sv fn" style="stroke-width:3.2"/>',
+  tri:  '<polygon points="27,30 73,30 50,72" class="sv fn" style="stroke-width:3"/>',
+  xfull:'<path d="M0 0L100 100M100 0L0 100" class="sv"/>',
+  blank:'', blank2:'',
+  grid: '<path d="M25 0V100M50 0V100M75 0V100M0 25H100M0 50H100M0 75H100" class="sv"/>'
+};
+const SYM_NAME = { dot:'qara dairə (●)', ring:'boş dairə (○)', bull:'nöqtəli dairə (◉)', plus:'plyus (+)',
+  x:'çarpaz (×)', sq:'qara kvadrat (■)', esq:'boş kvadrat (□)', dots4:'dörd nöqtə (⁘)', black:'tam qara üz', grid:'tor (#)',
+  tri:'üçbucaq (▽)', xfull:'çarpaz xətli üz (⊠)', blank:'boş üz', blank2:'boş üz' };
+const DIRS = {N:0,NE:45,E:90,SE:135,S:180,SW:225,W:270,NW:315};
+
+const r2 = v => Math.round(v*100)/100;
+const fcls = f => ({b:'fb',g:'fg',h:'fh',o:'fo',n:'fn'})[f||'n'] || 'fn';
+const swa  = p => p.w ? ` style="stroke-width:${p.w}"` : '';
+function polar(a, s){ const t=a*Math.PI/180; return [r2(s*Math.sin(t)), r2(-s*Math.cos(t))]; }
+function ngonPts(n, s){ const o=[]; for(let i=0;i<n;i++) o.push(polar(i*360/n, s).join(',')); return o.join(' '); }
+function faceInner(sym){ return `<rect width="100" height="100" class="fn"/>${SYM[sym]||''}<rect width="100" height="100" class="sv"/>`; }
+
+const PRIM = {
+  circle: p => `<circle r="${p.s??30}" class="s ${fcls(p.f)}"${swa(p)}/>`,
+  square: p => { const s=p.s??28; return `<rect x="${-s}" y="${-s}" width="${2*s}" height="${2*s}" class="s ${fcls(p.f)}"${swa(p)}/>`; },
+  ngon:   p => `<polygon points="${ngonPts(p.n||3, p.s??32)}" class="s ${fcls(p.f)}"${swa(p)}/>`,
+  star:   p => { const s=p.s??32, o=[]; for(let i=0;i<10;i++) o.push(polar(i*36, i%2? s*0.42 : s).join(',')); return `<polygon points="${o.join(' ')}" class="s ${fcls(p.f)}"${swa(p)}/>`; },
+  arrow:  p => { const s=p.s??30; return `<line x1="0" y1="${s}" x2="0" y2="${-s+12}" class="s" style="stroke-width:${p.w||3.2}"/><polygon points="0,${-s} -9,${-s+15} 9,${-s+15}" class="s fb"/>`; },
+  flag:   p => `<line x1="-12" y1="34" x2="-12" y2="-34" class="s" style="stroke-width:3.2"/><polygon points="-12,-34 24,-21 -12,-8" class="s ${fcls(p.f||'b')}"/>`,
+  poly:   p => `<polygon points="${p.pts.map(q=>q.join(',')).join(' ')}" class="s ${fcls(p.f)}"${swa(p)}/>`,
+  ray:    p => { const [x,y]=polar(p.a||0, p.s??30); return `<line x1="0" y1="0" x2="${x}" y2="${y}" class="s"${swa(p)}/>`; },
+  rays:   p => (p.d||[]).map(d => { const [x,y]=polar(DIRS[d], p.s??33); return `<line x1="0" y1="0" x2="${x}" y2="${y}" class="s" style="stroke-width:${p.w||3}"/>`; }).join(''),
+  dot:    p => `<circle r="${p.s??4}" class="fb"/>`,
+  dots:   p => {
+    const n=p.n||0, r=p.r??5.5, g=p.gap??16, sh=p.sh||'c', f=p.f||'b';
+    const cols = n<=3 ? n : n===4 ? 2 : n<=9 ? 3 : 4, rows=Math.ceil(n/cols); let out='';
+    for(let i=0;i<n;i++){
+      const row=Math.floor(i/cols), inRow=(row===rows-1)? n-row*cols : cols, col=i-row*cols;
+      const cx=r2((col-(inRow-1)/2)*g), cy=r2((row-(rows-1)/2)*g);
+      if(sh==='s') out+=`<rect x="${cx-r}" y="${cy-r}" width="${2*r}" height="${2*r}" class="s ${fcls(f)}" style="stroke-width:1.6"/>`;
+      else if(sh==='t') out+=`<polygon points="${ngonPts(3,r*1.25).split(' ').map(q=>{const [a,b]=q.split(',').map(Number);return r2(a+cx)+','+r2(b+cy+r*0.2);}).join(' ')}" class="s ${fcls(f)}" style="stroke-width:1.6"/>`;
+      else out+=`<circle cx="${cx}" cy="${cy}" r="${r}" class="s ${fcls(f)}" style="stroke-width:1.6"/>`;
+    }
+    return out;
+  },
+  pie:    p => {
+    const n=p.n||4, s=p.s??34, c=p.c||{}; let out='';
+    for(let i=0;i<n;i++){
+      const [x0,y0]=polar(i*360/n, s), [x1,y1]=polar((i+1)*360/n, s);
+      out+=`<path d="M0 0L${x0} ${y0}A${s} ${s} 0 0 1 ${x1} ${y1}Z" class="s ${fcls(c[i])}" style="stroke-width:2"/>`;
+    }
+    return out + `<circle r="${s}" class="s fo"/>`;
+  },
+  grid:   p => {
+    const n=p.n||3, s=p.s??33, cs=2*s/n, on=p.on||[]; let out='';
+    for(let k=0;k<n*n;k++){ const i=Math.floor(k/n), j=k%n;
+      out+=`<rect x="${r2(-s+j*cs)}" y="${r2(-s+i*cs)}" width="${r2(cs)}" height="${r2(cs)}" class="s ${on.includes(k)? fcls(p.f||'b') : 'fn'}" style="stroke-width:1.8"/>`; }
+    return out + `<rect x="${-s}" y="${-s}" width="${2*s}" height="${2*s}" class="s fo"/>`;
+  },
+  face:   p => { const s=p.s??30; return `<g transform="translate(${-s} ${-s}) scale(${r2(2*s/100)})">${faceInner(p.sym)}</g>`; }
+};
+function prim(p){
+  if(p.k==='line') return `<line x1="${p.x1}" y1="${p.y1}" x2="${p.x2}" y2="${p.y2}" class="s"${swa(p)}/>`;
+  const f = PRIM[p.k]; if(!f) return '';
+  let t = `translate(${p.x??50} ${p.y??50})`;
+  if(p.rot) t += ` rotate(${p.rot})`;
+  if(p.fx||p.fy) t += ` scale(${p.fx?-1:1} ${p.fy?-1:1})`;
+  return `<g transform="${t}">${f(p)}</g>`;
+}
+function netSVG(net){
+  const rows=net.rows, H=rows.length, W=Math.max(...rows.map(r=>r.length)); let out='';
+  rows.forEach((r,i)=>[...r].forEach((ch,j)=>{ if(ch!=='.'&&ch!==' ') out+=`<g transform="translate(${j*100} ${i*100})">${faceInner(net.faces[ch])}</g>`; }));
+  return `<svg viewBox="-5 -5 ${W*100+10} ${H*100+10}" style="max-width:${W*78}px" role="img" aria-label="Kubun açılışı">${out}</svg>`;
+}
+function cubeSVG(c){
+  // kabinet proyeksiyası: ön üz düz kvadrat, üst və sağ üzlər paraleloqram
+  const F=[[c[0],10,38,52,0,28,-24],[c[1],10,38,52,0,0,52],[c[2],62,38,28,-24,0,52]];
+  return `<svg viewBox="3 8 94 88" role="img" aria-label="Kub">` + F.map(([s,ox,oy,ux,uy,vx,vy]) =>
+    `<g transform="matrix(${ux/100} ${uy/100} ${vx/100} ${vy/100} ${ox} ${oy})">${faceInner(s)}</g>`).join('') + `</svg>`;
+}
+function figSVG(fig){
+  if(fig==null) return '';
+  if(Array.isArray(fig)) return `<svg viewBox="0 0 100 100" aria-hidden="true">${fig.map(prim).join('')}</svg>`;
+  if(fig.net) return netSVG(fig.net);
+  if(fig.cube) return cubeSVG(fig.cube);
+  return '';
+}
+
+/* ============================================================
+   3) KUB HƏLLEDİCİSİ — açılışı qatlayır, mümkün görünüşləri tapır.
+   Sual bankındakı kub suallarını avtomatik yoxlamaq üçündür.
+   ============================================================ */
+const Cube = (() => {
+  const neg=a=>a.map(x=>-x), key=a=>a.join(',');
+  function fold(rows){
+    const cells=[]; rows.forEach((r,i)=>[...r].forEach((ch,j)=>{ if(ch!=='.'&&ch!==' ') cells.push({ch,i,j}); }));
+    if(cells.length!==6) return {ok:false, err:'açılışda 6 xana olmalıdır'};
+    const at=(i,j)=>cells.find(c=>c.i===i&&c.j===j);
+    Object.assign(cells[0],{n:[0,0,1],u:[0,1,0],r:[1,0,0]});
+    const q=[cells[0]], seen=new Set([cells[0].ch]);
+    const mv=[[0,1,c=>({n:c.r,u:c.u,r:neg(c.n)})],[0,-1,c=>({n:neg(c.r),u:c.u,r:c.n})],
+              [1,0,c=>({n:neg(c.u),u:c.n,r:c.r})],[-1,0,c=>({n:c.u,u:neg(c.n),r:c.r})]];
+    while(q.length){ const c=q.shift();
+      for(const [di,dj,f] of mv){ const nb=at(c.i+di,c.j+dj);
+        if(nb && !seen.has(nb.ch)){ Object.assign(nb,f(c)); seen.add(nb.ch); q.push(nb); } } }
+    if(seen.size!==6) return {ok:false, err:'açılış bağlı deyil'};
+    if(new Set(cells.map(c=>key(c.n))).size!==6) return {ok:false, err:'bu açılışdan kub alınmır'};
+    const faces={}; cells.forEach(c=>faces[key(c.n)]=c.ch); return {ok:true, faces};
+  }
+  const ROT=[]; [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]].forEach(p=>{ for(let s=0;s<8;s++){
+    const sg=[s&1?-1:1,s&2?-1:1,s&4?-1:1], M=[[0,0,0],[0,0,0],[0,0,0]]; p.forEach((c,r)=>M[r][c]=sg[r]);
+    const d=M[0][0]*(M[1][1]*M[2][2]-M[1][2]*M[2][1])-M[0][1]*(M[1][0]*M[2][2]-M[1][2]*M[2][0])+M[0][2]*(M[1][0]*M[2][1]-M[1][1]*M[2][0]);
+    if(d===1) ROT.push(M); } });
+  const mul=(M,v)=>M.map(r=>r[0]*v[0]+r[1]*v[1]+r[2]*v[2]);
+  function views(faces){ const res=new Set();
+    for(const M of ROT){ const m={}; for(const k in faces) m[key(mul(M,k.split(',').map(Number)))]=faces[k];
+      res.add([m['0,1,0'],m['0,0,1'],m['1,0,0']].join('|')); } return res; }
+  function opposites(faces){ const o={}; for(const k in faces) o[faces[k]]=faces[key(neg(k.split(',').map(Number)))]; return o; }
+  function symFaces(net){ const f=fold(net.rows); if(!f.ok) return f; const s={}; for(const k in f.faces) s[k]=net.faces[f.faces[k]]; return {ok:true,faces:s}; }
+  const N6=['1,0,0','-1,0,0','0,1,0','0,-1,0','0,0,1','0,0,-1'];
+  const perms=a=>a.length<=1?[a]:a.flatMap((x,i)=>perms([...a.slice(0,i),...a.slice(i+1)]).map(p=>[x,...p]));
+  function consistent(syms, list){ return perms(syms).map(p=>{const f={}; N6.forEach((n,i)=>f[n]=p[i]); return f;})
+      .filter(f=>{ const v=views(f); return list.every(t=>v.has(t.join('|'))); }); }
+  // bir görünüş niyə mümkün deyil?
+  function reason(faces, t){
+    const o=opposites(faces);
+    for(let i=0;i<3;i++) for(let j=i+1;j<3;j++) if(o[t[i]]===t[j]) return {ok:false, why:'opp', a:t[i], b:t[j]};
+    return views(faces).has(t.join('|')) ? {ok:true} : {ok:false, why:'mirror'};
+  }
+  // istiqamətləri verilmiş üzlərə uyğun dönmə: want = {simvol:[x,y,z]}
+  function orient(faces, want){
+    const nk=s=>{ const k=Object.keys(faces).find(k=>faces[k]===s); return k&&k.split(',').map(Number); };
+    return ROT.find(M=>Object.entries(want).every(([s,v])=>{ const n=nk(s); return n&&mul(M,n).join()===v.join(); }));
+  }
+  function at(faces, M, v){ for(const k in faces) if(mul(M,k.split(',').map(Number)).join()===v.join()) return faces[k]; }
+  // açılış verilmiş görünüşlərə uyğundurmu? ('blank…' adlı boş üzlər bir-birini əvəz edə bilər)
+  function matchViews(net, list){
+    const bl=Object.keys(net.faces).filter(ch=>/^blank/.test(net.faces[ch])), vars=[net];
+    if(bl.length===2){ const f={...net.faces}; f[bl[0]]=net.faces[bl[1]]; f[bl[1]]=net.faces[bl[0]]; vars.push({rows:net.rows, faces:f}); }
+    let best=null;
+    for(const n of vars){ const sf=symFaces(n); if(!sf.ok) continue;
+      const fi=list.findIndex(v=>!reason(sf.faces,v).ok);
+      if(fi<0) return {ok:true, net:n, faces:sf.faces};
+      if(!best||fi>best.fi) best={ok:false, net:n, faces:sf.faces, fi};
+    }
+    return best;
+  }
+  return {fold, views, opposites, symFaces, consistent, reason, ROT, mul, orient, at, matchViews};
+})();
+
+/* ============================================================
+   4) SUAL BANKI
+   ------------------------------------------------------------
+   Yeni sual əlavə etmək üçün aşağıdakı nümunələrdən birini
+   kopyalayın və dəyişin. Sahələr:
+     id     – unikal ad (məs. 'seq-11')
+     cat    – 'seq' | 'matrix' | 'cube' | 'odd'
+     sub    – alt mövzu (statistikada görünür)
+     diff   – çətinlik 1..3
+     layout – 'row' (sıra), 'grid' (cədvəl, cols ilə), 'analogy' (A→B, C→?),
+              'net' (kub açılışı), 'views' (kubun görünüşləri), 'none' (yalnız variantlar)
+     cols   – 'grid' üçün sütun sayı (2 və ya 3)
+     q      – sualın mətni
+     items  – şərt fiqurları; null = sual işarəsi (?)
+     opts   – 5 variant (A–E). Ekranda həmişə qarışdırılır, ona görə izahda hərfə (A, B...) istinad etməyin.
+     ans    – doğru variantın opts-dakı indeksi (0-dan başlayır)
+     exp    – həll izahı
+   Kub sualları üçün əlavə (avtomatik yoxlanır, konsolda xəbərdarlıq verir):
+     check:'opp' + of:'simvol'   – "X-in qarşısında hansı üz?" (opts = [{k:'face',sym}])
+     check:'can' | 'cannot'      – "hansı kub alınar / alınmaz?" (opts = {cube:[üst,ön,sağ]})
+     check:'views' + of + syms   – görünüşlərdən qarşı üzü tapmaq
+     check:'netViews'            – görünüşlər verilir, variantlar açılışdır ({net:{rows,faces}})
+   ============================================================ */
+const CATS = {
+  seq:    {name:'Fiqur ardıcıllığı',       desc:'Dönmə, say artımı/azalması, rəng və ştrix dəyişimi, paralel dəyişənlər'},
+  matrix: {name:'Cədvəl / Matris',         desc:'3×3 və 2×2 cədvəllər: sətir-sütun qanunauyğunluğu, birləşmə, eyni xətlərin silinməsi'},
+  cube:   {name:'Kub və fəza təsəvvürü',   desc:'Kubun açılışı, qarşı-qarşıya üzlər, mümkün və mümkün olmayan görünüşlər'},
+  odd:    {name:'Artıq fiqur / Analogiya', desc:'Fərqlənən fiquru tapmaq, A→B münasibətini C-yə tətbiq etmək'}
+};
+const SQ = (x,y,f) => [{k:'square',s:36},{k:'circle',x,y,s:13,f}]; // köməkçi: seq-04 üçün
+const L_SHAPE = [[-20,-30],[-5,-30],[-5,15],[20,15],[20,30],[-20,30]];
+const FR = d => [{k:'square',s:37},{k:'rays',d}];                     // çərçivə + şüalar
+
+/*BANK-START*/
+const BANK = [
+/* ───────────── 1. FİQUR ARDICILLIĞI ───────────── */
+{ id:'seq-01', cat:'seq', sub:'Dönmə', diff:1, layout:'row',
+  q:'Ardıcıllığı davam etdirin. Sual işarəsinin yerinə hansı fiqur gəlməlidir?',
+  items:[[{k:'arrow',rot:0}],[{k:'arrow',rot:45}],[{k:'arrow',rot:90}],[{k:'arrow',rot:135}],null],
+  opts:[[{k:'arrow',rot:180}],[{k:'arrow',rot:225}],[{k:'arrow',rot:270}],[{k:'arrow',rot:135}],[{k:'arrow',rot:0}]],
+  ans:0,
+  exp:'Ox hər addımda saat əqrəbi istiqamətində 45° dönür: 0° → 45° → 90° → 135°. Növbəti mövqe 135° + 45° = 180°, yəni ox düz aşağı baxmalıdır.' },
+
+{ id:'seq-02', cat:'seq', sub:'Dönmə (artan bucaq)', diff:2, layout:'row',
+  q:'Ardıcıllığı davam etdirin.',
+  items:[[{k:'arrow',rot:0}],[{k:'arrow',rot:45}],[{k:'arrow',rot:135}],[{k:'arrow',rot:270}],null],
+  opts:[[{k:'arrow',rot:90}],[{k:'arrow',rot:180}],[{k:'arrow',rot:315}],[{k:'arrow',rot:270}],[{k:'arrow',rot:0}]],
+  ans:0,
+  exp:'Dönmə bucağı hər addımda 45° artır: +45°, +90°, +135°. Növbəti addım +180°-dir: 270° + 180° = 450° = 90°, yəni ox sağa baxır. (315° — bucağın sabit 45° artdığını düşünənlər üçün çəldirici variantdır.)' },
+
+{ id:'seq-03', cat:'seq', sub:'Paralel dəyişənlər (say)', diff:1, layout:'row',
+  q:'Ardıcıllığı davam etdirin.',
+  items:[[{k:'ngon',n:3,s:38,y:56},{k:'dots',n:4,y:62,r:4.5,gap:12}],
+         [{k:'square',s:30},{k:'dots',n:3,r:4.5,gap:13}],
+         [{k:'ngon',n:5,s:34,y:52},{k:'dots',n:2,y:54,r:4.5,gap:13}],null],
+  opts:[[{k:'ngon',n:6,s:34},{k:'dots',n:1,r:4.5}],
+        [{k:'ngon',n:6,s:34},{k:'dots',n:2,r:4.5,gap:13}],
+        [{k:'ngon',n:5,s:34,y:52},{k:'dots',n:1,y:54,r:4.5}],
+        [{k:'ngon',n:7,s:34},{k:'dots',n:1,r:4.5}],
+        [{k:'ngon',n:6,s:34}]],
+  ans:0,
+  exp:'İki dəyişən paralel dəyişir: fiqurun tərəf sayı 1 artır (3 → 4 → 5 → 6), içindəki nöqtələrin sayı isə 1 azalır (4 → 3 → 2 → 1). Deməli, içində bir nöqtə olan altıbucaqlı.' },
+
+{ id:'seq-04', cat:'seq', sub:'Hərəkət + rəng dövrü', diff:2, layout:'row',
+  q:'Ardıcıllığı davam etdirin.',
+  items:[SQ(31,31,'n'),SQ(69,31,'b'),SQ(69,69,'h'),SQ(31,69,'n'),SQ(31,31,'b'),null],
+  opts:[SQ(69,31,'h'),SQ(69,31,'b'),SQ(31,31,'h'),SQ(69,69,'h'),SQ(69,31,'n')],
+  ans:0,
+  exp:'Kiçik dairə hər addımda saat əqrəbi istiqamətində növbəti küncə keçir (sol-yuxarı → sağ-yuxarı → sağ-aşağı → sol-aşağı → ...). Rəngi isə dövri dəyişir: ağ → qara → ştrixli. 6-cı fiqurda dairə sağ-yuxarı küncdə və ştrixli olmalıdır.' },
+
+{ id:'seq-05', cat:'seq', sub:'İki əqrəb (əks istiqamətlər)', diff:3, layout:'row',
+  q:'Ardıcıllığı davam etdirin.',
+  items:[[{k:'circle',s:40},{k:'ray',a:0,s:31,w:2.6},{k:'ray',a:90,s:19,w:5.5},{k:'dot',s:3.5}],
+         [{k:'circle',s:40},{k:'ray',a:90,s:31,w:2.6},{k:'ray',a:45,s:19,w:5.5},{k:'dot',s:3.5}],
+         [{k:'circle',s:40},{k:'ray',a:180,s:31,w:2.6},{k:'ray',a:0,s:19,w:5.5},{k:'dot',s:3.5}],
+         [{k:'circle',s:40},{k:'ray',a:270,s:31,w:2.6},{k:'ray',a:315,s:19,w:5.5},{k:'dot',s:3.5}],null],
+  opts:[[{k:'circle',s:40},{k:'ray',a:0,s:31,w:2.6},{k:'ray',a:270,s:19,w:5.5},{k:'dot',s:3.5}],
+        [{k:'circle',s:40},{k:'ray',a:0,s:31,w:2.6},{k:'ray',a:315,s:19,w:5.5},{k:'dot',s:3.5}],
+        [{k:'circle',s:40},{k:'ray',a:90,s:31,w:2.6},{k:'ray',a:270,s:19,w:5.5},{k:'dot',s:3.5}],
+        [{k:'circle',s:40},{k:'ray',a:270,s:31,w:2.6},{k:'ray',a:0,s:19,w:5.5},{k:'dot',s:3.5}],
+        [{k:'circle',s:40},{k:'ray',a:0,s:31,w:2.6},{k:'ray',a:225,s:19,w:5.5},{k:'dot',s:3.5}]],
+  ans:0,
+  exp:'Uzun (nazik) əqrəb hər dəfə 90° saat əqrəbi istiqamətində, qısa (qalın) əqrəb isə 45° əks istiqamətdə dönür. Uzun: 0° → 90° → 180° → 270° → 0° (yuxarı). Qısa: 90° → 45° → 0° → 315° → 270° (sola). Əqrəblərin yerini dəyişən variant çəldiricidir.' },
+
+{ id:'seq-06', cat:'seq', sub:'Növbələşən iki sıra', diff:2, layout:'row',
+  q:'Ardıcıllığı davam etdirin.',
+  items:[[{k:'ngon',n:3,s:34,y:54}],[{k:'circle',s:32},{k:'dots',n:1}],
+         [{k:'ngon',n:3,s:34,x:46,rot:90}],[{k:'circle',s:32},{k:'dots',n:2}],
+         [{k:'ngon',n:3,s:34,y:46,rot:180}],null],
+  opts:[[{k:'circle',s:32},{k:'dots',n:3}],[{k:'ngon',n:3,s:34,x:54,rot:270}],
+        [{k:'circle',s:32},{k:'dots',n:2}],[{k:'square',s:28},{k:'dots',n:3}],[{k:'circle',s:32},{k:'dots',n:4}]],
+  ans:0,
+  exp:'Burada iki ayrı ardıcıllıq növbələşir. Tək yerlərdə (1, 3, 5) üçbucaq hər dəfə 90° dönür, cüt yerlərdə (2, 4, 6) isə dairənin içindəki nöqtələrin sayı 1 artır: 1 → 2 → 3. Sual 6-cı (cüt) yerdədir, deməli üç nöqtəli dairə.' },
+
+{ id:'seq-07', cat:'seq', sub:'Artan addımla hərəkət', diff:3, layout:'row',
+  q:'Qara xananın hərəkət qaydasını tapın. Sual işarəsinin yerinə hansı fiqur gəlməlidir?',
+  items:[[{k:'grid',on:[0]}],[{k:'grid',on:[1]}],[{k:'grid',on:[5]}],[{k:'grid',on:[6]}],null],
+  opts:[[{k:'grid',on:[2]}],[{k:'grid',on:[3]}],[{k:'grid',on:[7]}],[{k:'grid',on:[8]}],[{k:'grid',on:[4]}]],
+  ans:0,
+  exp:'Qara xana kənar xanalar üzrə saat əqrəbi istiqamətində hərəkət edir və addımın uzunluğu hər dəfə 1 artır: 1, 2, 3 xana. Növbəti addım 4 xanadır: sol-aşağı küncdən 4 xana irəli (sol-orta → sol-yuxarı → yuxarı-orta → sağ-yuxarı). Cavab: sağ-yuxarı künc.' },
+
+{ id:'seq-08', cat:'seq', sub:'Əks istiqamətli dönmə', diff:2, layout:'row',
+  q:'Ardıcıllığı davam etdirin.',
+  items:[[{k:'pie',c:{0:'b',3:'h'}}],[{k:'pie',c:{1:'b',2:'h'}}],[{k:'pie',c:{2:'b',1:'h'}}],
+         [{k:'pie',c:{3:'b',0:'h'}}],[{k:'pie',c:{0:'b',3:'h'}}],null],
+  opts:[[{k:'pie',c:{1:'b',2:'h'}}],[{k:'pie',c:{2:'b',1:'h'}}],[{k:'pie',c:{0:'b',2:'h'}}],
+        [{k:'pie',c:{1:'b',0:'h'}}],[{k:'pie',c:{1:'b',3:'h'}}]],
+  ans:0,
+  exp:'Qara sektor hər addımda 90° saat əqrəbi istiqamətində, ştrixli sektor isə 90° əks istiqamətdə dönür. Dövr 4 addımdır: 5-ci fiqur 1-ci ilə eynidir, deməli 6-cı fiqur 2-ci ilə eyni olmalıdır (qara — sağ-aşağı, ştrixli — sol-aşağı).' },
+
+{ id:'seq-09', cat:'seq', sub:'Say ardıcıllığı', diff:2, layout:'row',
+  q:'Ardıcıllığı davam etdirin.',
+  items:[[{k:'dots',n:1}],[{k:'dots',n:1}],[{k:'dots',n:2}],[{k:'dots',n:3}],[{k:'dots',n:5}],null],
+  opts:[[{k:'dots',n:8}],[{k:'dots',n:7}],[{k:'dots',n:6}],[{k:'dots',n:9}],[{k:'dots',n:10}]],
+  ans:0,
+  exp:'Hər fiqurdakı nöqtələrin sayı özündən əvvəlki iki fiqurun nöqtə saylarının cəminə bərabərdir: 1, 1, 2 (1+1), 3 (1+2), 5 (2+3), → 3 + 5 = 8. (7 — sayın sabit +2 artdığını düşünənlər üçün çəldiricidir.)' },
+
+{ id:'seq-10', cat:'seq', sub:'Dönmə + rəng növbəsi', diff:2, layout:'row',
+  q:'Sual işarəsinin yerinə hansı fiqur gəlməlidir?',
+  items:[[{k:'flag',f:'b'}],[{k:'flag',rot:90,f:'n'}],null,[{k:'flag',rot:270,f:'n'}],[{k:'flag',f:'b'}]],
+  opts:[[{k:'flag',rot:180,f:'b'}],[{k:'flag',rot:180,f:'n'}],[{k:'flag',rot:90,f:'b'}],[{k:'flag',rot:270,f:'b'}],[{k:'flag',fy:true,f:'b'}]],
+  ans:0,
+  exp:'Bayraq hər addımda 90° saat əqrəbi istiqamətində dönür (0° → 90° → 180° → 270° → 0°), rəngi isə növbə ilə qara və ağ olur. 3-cü yer: 180° və qara — bayraq aşağıda, sola baxır. Diqqət: bayrağın aşağıda sağa baxan forması dönmə ilə yox, güzgü əksi ilə alınır.' },
+
+/* ───────────── 2. CƏDVƏL / MATRİS ───────────── */
+{ id:'matrix-01', cat:'matrix', sub:'Latın kvadratı (forma + rəng)', diff:1, layout:'grid', cols:3,
+  q:'Cədvəldəki qanunauyğunluğu tapın. Boş xanaya hansı fiqur gəlməlidir?',
+  items:[[{k:'circle',s:26}],[{k:'square',s:24,f:'b'}],[{k:'ngon',n:3,s:30,y:55,f:'h'}],
+         [{k:'square',s:24,f:'h'}],[{k:'ngon',n:3,s:30,y:55}],[{k:'circle',s:26,f:'b'}],
+         [{k:'ngon',n:3,s:30,y:55,f:'b'}],[{k:'circle',s:26,f:'h'}],null],
+  opts:[[{k:'square',s:24}],[{k:'square',s:24,f:'b'}],[{k:'square',s:24,f:'h'}],[{k:'circle',s:26}],[{k:'ngon',n:3,s:30,y:55}]],
+  ans:0,
+  exp:'Hər sətirdə və hər sütunda dairə, kvadrat və üçbucaq bir dəfə; ağ, qara və ştrixli rəng də bir dəfə iştirak edir. 3-cü sətirdə kvadrat çatmır, 3-cü sütunda isə ağ rəng çatmır → ağ kvadrat.' },
+
+{ id:'matrix-02', cat:'matrix', sub:'Eyni xətlərin silinməsi (XOR)', diff:3, layout:'grid', cols:3,
+  q:'Hər sətirdə 1-ci və 2-ci fiqurdan 3-cü fiqur alınır. Boş xanaya hansı fiqur gəlməlidir?',
+  items:[FR(['N','E','SW']),FR(['E','S','SW','NW']),FR(['N','S','NW']),
+         FR(['N','NE','W']),FR(['NE','SE','W','S']),FR(['N','SE','S']),
+         FR(['E','S','NW','N']),FR(['S','SW','N','W']),null],
+  opts:[FR(['E','NW','SW','W']),FR(['E','S','NW','N','SW','W']),FR(['S','N']),FR(['E','NW','SW']),FR(['E','NW','SW','W','S'])],
+  ans:0,
+  exp:'1-ci və 2-ci fiqur üst-üstə qoyulur: hər ikisində olan (təkrarlanan) xətlər silinir, yalnız birində olan xətlər qalır. 3-cü sətirdə ortaq xətlər yuxarı və aşağı xətlərdir — onlar silinir. Qalır: sağ, sol, sol-yuxarı və sol-aşağı xətlər. Bütün xətləri birləşdirən (heç nə silməyən) variant çəldiricidir.' },
+
+{ id:'matrix-03', cat:'matrix', sub:'Fiqurların birləşməsi', diff:1, layout:'grid', cols:3,
+  q:'Boş xanaya hansı fiqur gəlməlidir?',
+  items:[[{k:'circle',s:30}],[{k:'line',x1:50,y1:12,x2:50,y2:88}],[{k:'circle',s:30},{k:'line',x1:50,y1:12,x2:50,y2:88}],
+         [{k:'square',s:28}],[{k:'line',x1:16,y1:16,x2:84,y2:84},{k:'line',x1:84,y1:16,x2:16,y2:84}],
+         [{k:'square',s:28},{k:'line',x1:16,y1:16,x2:84,y2:84},{k:'line',x1:84,y1:16,x2:16,y2:84}],
+         [{k:'ngon',n:3,s:36,y:56}],[{k:'line',x1:12,y1:56,x2:88,y2:56}],null],
+  opts:[[{k:'ngon',n:3,s:36,y:56},{k:'line',x1:12,y1:56,x2:88,y2:56}],
+        [{k:'ngon',n:3,s:36,y:56},{k:'line',x1:50,y1:12,x2:50,y2:88}],
+        [{k:'ngon',n:3,s:36,y:56}],
+        [{k:'square',s:28},{k:'line',x1:12,y1:56,x2:88,y2:56}],
+        [{k:'ngon',n:3,s:36,y:56},{k:'line',x1:16,y1:16,x2:84,y2:84},{k:'line',x1:84,y1:16,x2:16,y2:84}]],
+  ans:0,
+  exp:'Hər sətirdə 3-cü fiqur 1-ci və 2-ci fiqurların birləşməsidir (üst-üstə qoyulması). 3-cü sətir: üçbucaq + üfüqi xətt.' },
+
+{ id:'matrix-04', cat:'matrix', sub:'Element sayı (cəm)', diff:2, layout:'grid', cols:3,
+  q:'Boş xanaya hansı fiqur gəlməlidir?',
+  items:[[{k:'dots',n:2,r:7,gap:20,f:'n'}],[{k:'dots',n:3,r:7,gap:20,f:'n'}],[{k:'dots',n:5,r:7,gap:20,f:'n'}],
+         [{k:'dots',n:1,r:7,gap:20,sh:'s'}],[{k:'dots',n:3,r:7,gap:20,sh:'s'}],[{k:'dots',n:4,r:7,gap:20,sh:'s'}],
+         [{k:'dots',n:3,r:7,gap:20,sh:'t'}],[{k:'dots',n:2,r:7,gap:20,sh:'t'}],null],
+  opts:[[{k:'dots',n:5,r:7,gap:20,sh:'t'}],[{k:'dots',n:6,r:7,gap:20,sh:'t'}],[{k:'dots',n:4,r:7,gap:20,sh:'t'}],
+        [{k:'dots',n:5,r:7,gap:20,f:'n'}],[{k:'dots',n:1,r:7,gap:20,sh:'t'}]],
+  ans:0,
+  exp:'Hər sətirdə 3-cü xanadakı elementlərin sayı ilk iki xanadakıların cəminə bərabərdir: 2 + 3 = 5, 1 + 3 = 4. Element növü sətir boyu dəyişmir. 3-cü sətir: 3 + 2 = 5 üçbucaq. (1 — fərqi götürənlər üçün çəldiricidir.)' },
+
+{ id:'matrix-05', cat:'matrix', sub:'2×2: dönmə + rəng inversiyası', diff:3, layout:'grid', cols:2,
+  q:'Boş xanaya hansı fiqur gəlməlidir?',
+  items:[[{k:'pie',c:{0:'b',1:'h'}}],[{k:'pie',c:{1:'b',2:'h'}}],[{k:'pie',c:{1:'h',2:'b',3:'b'}}],null],
+  opts:[[{k:'pie',c:{0:'b',2:'h',3:'b'}}],[{k:'pie',c:{1:'b',2:'h'}}],[{k:'pie',c:{0:'h',1:'b',2:'b'}}],
+        [{k:'pie',c:{0:'b',1:'b',2:'h'}}],[{k:'pie',c:{1:'b',2:'h',3:'b'}}]],
+  ans:0,
+  exp:'Soldan sağa fiqur 90° saat əqrəbi istiqamətində dönür. Yuxarıdan aşağıya qara və ağ sektorlar yer dəyişir (ştrixli sektor dəyişmir). Aşağı-sağ xana: yuxarı-sağ fiqurun rəngləri tərsinə çevrilmiş halı (ağ sektor sağ-aşağıda, ştrixli sol-aşağıda, qalan ikisi qara). Sol-aşağı fiqurun əks istiqamətdə dönməsi çəldiricidir.' },
+
+{ id:'matrix-06', cat:'matrix', sub:'2×2: daxil-xaric yerdəyişməsi', diff:1, layout:'grid', cols:2,
+  q:'Boş xanaya hansı fiqur gəlməlidir?',
+  items:[[{k:'circle',s:36},{k:'square',s:11,f:'b'}],[{k:'square',s:33},{k:'circle',s:12,f:'b'}],
+         [{k:'ngon',n:3,s:40,y:57},{k:'ngon',n:6,s:12,y:62,f:'b'}],null],
+  opts:[[{k:'ngon',n:6,s:37},{k:'ngon',n:3,s:14,y:52,f:'b'}],[{k:'ngon',n:3,s:40,y:57},{k:'ngon',n:6,s:12,y:62,f:'b'}],
+        [{k:'ngon',n:6,s:37},{k:'ngon',n:6,s:13,f:'b'}],[{k:'ngon',n:6,s:37},{k:'ngon',n:3,s:14,y:52}],
+        [{k:'square',s:33},{k:'ngon',n:3,s:14,y:52,f:'b'}]],
+  ans:0,
+  exp:'Sətir üzrə xarici və daxili fiqur yerlərini dəyişir: böyük ağ fiqur kiçilib içəri keçir və qara olur, kiçik qara fiqur isə böyüyüb ağ çərçivəyə çevrilir. Deməli: böyük ağ altıbucaqlının içində kiçik qara üçbucaq.' },
+
+{ id:'matrix-07', cat:'matrix', sub:'Sətir: dönmə, sütun: çərçivə', diff:2, layout:'grid', cols:3,
+  q:'Boş xanaya hansı fiqur gəlməlidir?',
+  items:[[{k:'arrow',s:25,rot:0}],[{k:'circle',s:38},{k:'arrow',s:25,rot:45}],[{k:'square',s:36},{k:'arrow',s:25,rot:90}],
+         [{k:'arrow',s:25,rot:90}],[{k:'circle',s:38},{k:'arrow',s:25,rot:135}],[{k:'square',s:36},{k:'arrow',s:25,rot:180}],
+         [{k:'arrow',s:25,rot:180}],[{k:'circle',s:38},{k:'arrow',s:25,rot:225}],null],
+  opts:[[{k:'square',s:36},{k:'arrow',s:25,rot:270}],[{k:'square',s:36},{k:'arrow',s:25,rot:90}],
+        [{k:'circle',s:38},{k:'arrow',s:25,rot:270}],[{k:'square',s:36},{k:'arrow',s:25,rot:225}],
+        [{k:'square',s:36},{k:'arrow',s:25,rot:315}]],
+  ans:0,
+  exp:'Sətir boyu ox hər xanada 45° saat əqrəbi istiqamətində dönür, hər sətir isə əvvəlkindən 90° dönmüş vəziyyətdə başlayır. Sütunlar çərçivəni müəyyən edir: 1-ci — çərçivəsiz, 2-ci — dairə, 3-cü — kvadrat. Cavab: kvadrat içində 180° + 90° = 270° (sola baxan) ox.' },
+
+{ id:'matrix-08', cat:'matrix', sub:'Qara xanaların dönməsi', diff:3, layout:'grid', cols:3,
+  q:'Boş xanaya hansı fiqur gəlməlidir?',
+  items:[[{k:'grid',s:30,on:[0,1,5]}],[{k:'grid',s:30,on:[2,5,7]}],[{k:'grid',s:30,on:[3,7,8]}],
+         [{k:'grid',s:30,on:[0,3,4,8]}],[{k:'grid',s:30,on:[1,2,4,6]}],[{k:'grid',s:30,on:[0,4,5,8]}],
+         [{k:'grid',s:30,on:[1,2,3]}],[{k:'grid',s:30,on:[1,5,8]}],null],
+  opts:[[{k:'grid',s:30,on:[5,6,7]}],[{k:'grid',s:30,on:[0,3,7]}],[{k:'grid',s:30,on:[3,7,8]}],
+        [{k:'grid',s:30,on:[1,2,3]}],[{k:'grid',s:30,on:[1,5,8]}]],
+  ans:0,
+  exp:'Hər sətirdə qara xanalardan ibarət naxış bir xanadan digərinə 90° saat əqrəbi istiqamətində dönür. 3-cü sətrin 1-ci fiquru iki dəfə (180°) dönməlidir: sağ-orta və aşağı sıranın sol iki xanası qara olur. Bu naxışın güzgü əksi (sağ-aşağı iki xana + sol-orta) çəldiricidir.' },
+
+{ id:'matrix-09', cat:'matrix', sub:'Yalnız ortaq xətlər (AND)', diff:3, layout:'grid', cols:3,
+  q:'Hər sətirdə 1-ci və 2-ci fiqurdan 3-cü fiqur alınır. Boş xanaya hansı fiqur gəlməlidir?',
+  items:[FR(['N','E','S','W','NE']),FR(['N','S','SW','NE']),FR(['N','S','NE']),
+         FR(['NW','SE','E','N']),FR(['SE','E','W','S']),FR(['SE','E']),
+         FR(['N','NE','E','SE','S']),FR(['NE','SE','SW','W','N']),null],
+  opts:[FR(['N','NE','SE']),FR(['E','S','SW','W']),FR(['N','NE','E','SE','S','SW','W']),FR(['NE','SE']),FR(['N','NE','SE','S'])],
+  ans:0,
+  exp:'Bu dəfə qayda əksinədir: 3-cü fiqurda yalnız hər iki fiqurda olan (ortaq) xətlər qalır. 3-cü sətir: ortaq xətlər yuxarı, sağ-yuxarı və sağ-aşağı xətlərdir. Fərqli xətləri saxlayan variant (XOR) çəldiricidir — 1-ci sətirdə yoxlasanız, o qayda uyğun gəlmir.' },
+
+{ id:'matrix-10', cat:'matrix', sub:'2×2: dönmə və güzgü əksi', diff:2, layout:'grid', cols:2,
+  q:'Boş xanaya hansı fiqur gəlməlidir?',
+  items:[[{k:'flag'}],[{k:'flag',rot:180}],[{k:'flag',fx:true}],null],
+  opts:[[{k:'flag',fy:true}],[{k:'flag',rot:180}],[{k:'flag',rot:90}],[{k:'flag',rot:270}],[{k:'flag',fx:true}]],
+  ans:0,
+  exp:'Soldan sağa fiqur 180° dönür, yuxarıdan aşağıya isə şaquli oxa görə güzgü əksi alınır. Sol-aşağı fiquru (yuxarıda, sola baxan bayraq) 180° döndərsək, bayraq aşağıda sağa baxacaq. Hər iki istiqamətdə yoxlama eyni nəticəni verir.' },
+
+/* ───────────── 3. KUB VƏ FƏZA TƏSƏVVÜRÜ ───────────── */
+{ id:'cube-01', cat:'cube', sub:'Qarşı-qarşıya üzlər', diff:1, layout:'net',
+  q:'Açılışdan kub yığılır. Qara dairə (●) olan üzün qarşısında hansı üz olacaq?',
+  items:[{net:{rows:['.A..','BCDE','.F..'], faces:{A:'dot',B:'ring',C:'plus',D:'esq',E:'sq',F:'bull'}}}],
+  opts:[[{k:'face',sym:'bull'}],[{k:'face',sym:'ring'}],[{k:'face',sym:'plus'}],[{k:'face',sym:'esq'}],[{k:'face',sym:'sq'}]],
+  ans:0, check:'opp', of:'dot',
+  exp:'Xaç formalı açılışda bir sütunda (və ya bir sətirdə) aralarında bir xana olan üzlər qarşı-qarşıya olur. Qara dairə ilə nöqtəli dairə eyni sütundadır və aralarında plyus var — onlar qarşı üzlərdir.' },
+
+{ id:'cube-02', cat:'cube', sub:'Qarşı-qarşıya üzlər (pilləkən)', diff:2, layout:'net',
+  q:'Açılışdan kub yığılır. Plyus (+) olan üzün qarşısında hansı üz olacaq?',
+  items:[{net:{rows:['AB..','.CD.','..EF'], faces:{A:'plus',B:'dot',C:'ring',D:'sq',E:'esq',F:'black'}}}],
+  opts:[[{k:'face',sym:'sq'}],[{k:'face',sym:'dot'}],[{k:'face',sym:'ring'}],[{k:'face',sym:'esq'}],[{k:'face',sym:'black'}]],
+  ans:0, check:'opp', of:'plus',
+  exp:'Pilləkən açılışında hər üz zolaq boyu "bir üz atlanaraq" gələn üzlə qarşı-qarşıya olur: A–D, B–E, C–F. Plyus (A) ilə qara kvadrat (D) arasında iki addım var: A → B → C → D yolunda B və C plyusa qonşudur, D isə onun qarşısına düşür.' },
+
+{ id:'cube-03', cat:'cube', sub:'Qarşı-qarşıya üzlər (1-3-2)', diff:2, layout:'net',
+  q:'Açılışdan kub yığılır. Boş kvadrat (□) olan üzün qarşısında hansı üz olacaq?',
+  items:[{net:{rows:['A...','BCD.','..EF'], faces:{A:'ring',B:'esq',C:'dot',D:'bull',E:'plus',F:'sq'}}}],
+  opts:[[{k:'face',sym:'bull'}],[{k:'face',sym:'dot'}],[{k:'face',sym:'ring'}],[{k:'face',sym:'plus'}],[{k:'face',sym:'sq'}]],
+  ans:0, check:'opp', of:'esq',
+  exp:'Orta sırada üç üz var (□ ● ◉): bir sırada aralarında bir xana olan üzlər qarşı-qarşıyadır, yəni □ ilə ◉. Yuxarıdakı boş dairə və aşağıdakı plyus □ üzünə qonşu olur.' },
+
+{ id:'cube-04', cat:'cube', sub:'Hansı kub alınar?', diff:2, layout:'net',
+  q:'Bu açılışdan hansı kub alına BİLƏR?',
+  items:[{net:{rows:['.A..','BCDE','.F..'], faces:{A:'dot',B:'ring',C:'plus',D:'esq',E:'sq',F:'bull'}}}],
+  opts:[{cube:['dot','plus','esq']},{cube:['dot','esq','plus']},{cube:['plus','sq','dot']},{cube:['ring','dot','plus']},{cube:['bull','dot','ring']}],
+  ans:0, check:'can',
+  exp:'İki yoxlama aparılır: 1) qarşı-qarşıya olan üzlər (● – ◉, ○ – □, + – ■) eyni anda görünə bilməz; 2) qonşu üç üzün düzülüş istiqaməti (saat əqrəbi üzrə ardıcıllığı) açılışdakı ilə eyni olmalıdır. Açılışda + mərkəzdə, ● yuxarıda, □ sağdadır — kubda da ● üstdə, + önündə, □ sağda görünür.' },
+
+{ id:'cube-05', cat:'cube', sub:'Hansı kub alınmaz?', diff:3, layout:'net',
+  q:'Bu açılışdan hansı kub alına BİLMƏZ?',
+  items:[{net:{rows:['AB..','.CD.','..EF'], faces:{A:'plus',B:'dot',C:'ring',D:'sq',E:'esq',F:'black'}}}],
+  opts:[{cube:['plus','dot','ring']},{cube:['black','plus','dot']},{cube:['plus','ring','dot']},{cube:['dot','plus','ring']},{cube:['esq','ring','plus']}],
+  ans:0, check:'cannot',
+  exp:'Burada bütün variantlarda qarşı üzlər birlikdə görünmür, ona görə də qərarı düzülüş istiqaməti verir. +, ● və ○ üzləri bir küncdə birləşir; açılışa görə bu küncdə onların ardıcıllığı müəyyəndir. Variantlardan birində bu üç üz güzgü əksi kimi düzülüb — bu kub alınmaz.' },
+
+{ id:'cube-06', cat:'cube', sub:'Hansı kub alınar?', diff:3, layout:'net',
+  q:'Bu açılışdan hansı kub alına BİLƏR?',
+  items:[{net:{rows:['A...','BCD.','..EF'], faces:{A:'ring',B:'esq',C:'dot',D:'bull',E:'plus',F:'sq'}}}],
+  opts:[{cube:['ring','esq','dot']},{cube:['ring','dot','esq']},{cube:['sq','bull','ring']},{cube:['dot','sq','ring']},{cube:['plus','esq','ring']}],
+  ans:0, check:'can',
+  exp:'Qarşı üzlər: ○ – +, □ – ◉, ● – ■. Bunlardan biri birlikdə görünən variantlar dərhal düşür. Qalan variantlarda üç üzün saat əqrəbi üzrə ardıcıllığını açılışla müqayisə edin: ○ □ ● küncü açılışda olduğu kimi düzülməlidir; güzgü düzülüşü alınmır.' },
+
+{ id:'cube-07', cat:'cube', sub:'Hansı kub alınmaz?', diff:3, layout:'net',
+  q:'Bu açılışdan hansı kub alına BİLMƏZ?',
+  items:[{net:{rows:['ABC..','..DEF'], faces:{A:'dots4',B:'ring',C:'black',D:'plus',E:'dot',F:'esq'}}}],
+  opts:[{cube:['dots4','ring','plus']},{cube:['esq','dots4','ring']},{cube:['dots4','plus','ring']},{cube:['ring','dots4','plus']},{cube:['black','plus','dot']}],
+  ans:0, check:'cannot',
+  exp:'3-3 açılışında qarşı üzlər: ⁘ – tam qara, ○ – ●, + – □. Variantların heç birində qarşı üzlər birlikdə yoxdur, ona görə istiqaməti yoxlayırıq: ⁘, ○ və + bir küncdə birləşir və bu küncün düzülüşü yalnız bir istiqamətdə ola bilər. Güzgü düzülüşlü variant alınmaz.' },
+
+{ id:'cube-08', cat:'cube', sub:'Hansı kub alınar?', diff:2, layout:'net',
+  q:'Bu açılışdan hansı kub alına BİLƏR?',
+  items:[{net:{rows:['..A.','BCDE','F...'], faces:{A:'sq',B:'bull',C:'esq',D:'ring',E:'dot',F:'plus'}}}],
+  opts:[{cube:['sq','ring','dot']},{cube:['sq','dot','ring']},{cube:['plus','dot','bull']},{cube:['bull','ring','sq']},{cube:['esq','sq','dot']}],
+  ans:0, check:'can',
+  exp:'Qarşı üzlər: ■ – +, ◉ – ○, □ – ●. ■ birbaşa ○-un üstündədir, ● isə ○-un sağında — qatlananda ■ üstdə, ○ önündə, ● sağda olur. Üzləri düzgün, amma istiqaməti tərs olan variantlar güzgü əksidir.' },
+
+{ id:'cube-09', cat:'cube', sub:'Görünüşlərdən qarşı üz', diff:3, layout:'views',
+  q:'Eyni kubun üç görünüşü verilib. Plyus (+) olan üzün qarşısında hansı üz durur?',
+  items:[{cube:['dot','plus','esq']},{cube:['dot','ring','plus']},{cube:['bull','plus','ring']}],
+  opts:[[{k:'face',sym:'sq'}],[{k:'face',sym:'bull'}],[{k:'face',sym:'esq'}],[{k:'face',sym:'ring'}],[{k:'face',sym:'dot'}]],
+  ans:0, check:'views', of:'plus', syms:['dot','ring','plus','esq','sq','bull'],
+  exp:'Görünüşlərdə plyusla yanaşı görünən hər üz onun qonşusudur: ● və □ (1-ci), ○ (2-ci), ◉ (3-cü). Plyusun 4 qonşusu tapıldı; 6 üzdən geriyə qalan yeganə üz — qara kvadrat — onun qarşısındadır.' },
+
+{ id:'cube-10', cat:'cube', sub:'Görünüşlərdən qarşı üz', diff:2, layout:'views',
+  q:'Eyni kubun iki görünüşü verilib. Boş kvadrat (□) olan üzün qarşısında hansı üz durur?',
+  items:[{cube:['ring','esq','dot']},{cube:['plus','esq','sq']}],
+  opts:[[{k:'face',sym:'black'}],[{k:'face',sym:'ring'}],[{k:'face',sym:'dot'}],[{k:'face',sym:'plus'}],[{k:'face',sym:'sq'}]],
+  ans:0, check:'views', of:'esq', syms:['ring','esq','dot','black','plus','sq'],
+  exp:'Hər iki görünüşdə □ üzü var. Onunla yanaşı görünən üzlər: ○ və ● (1-ci), + və ■ (2-ci) — cəmi 4 qonşu. Kubun hər üzünün düz 4 qonşusu olduğundan, qalan tam qara üz □-in qarşısındadır.' },
+
+{ id:'cube-11', cat:'cube', sub:'Görünüşlərdən açılış', diff:3, layout:'views',
+  q:'Eyni kubun üç görünüşü verilib. Bu kub hansı açılışdan alınır?',
+  items:[{cube:['tri','dot','xfull']},{cube:['sq','blank2','xfull']},{cube:['blank2','xfull','sq']}],
+  opts:[{net:{rows:['.S.','XDP','.Q.','.T.'], faces:{S:'sq',X:'xfull',D:'dot',P:'blank',Q:'blank2',T:'tri'}}},
+        {net:{rows:['.P.','SDX','.T.','.Q.'], faces:{S:'sq',X:'xfull',D:'dot',P:'blank',Q:'blank2',T:'tri'}}},
+        {net:{rows:['.X.','PDQ','.T.','.S.'], faces:{S:'sq',X:'xfull',D:'dot',P:'blank',Q:'blank2',T:'tri'}}},
+        {net:{rows:['.S.','PDX','.T.','.Q.'], faces:{S:'sq',X:'xfull',D:'dot',P:'blank',Q:'blank2',T:'tri'}}},
+        {net:{rows:['.S.','XDP','.T.','.Q.'], faces:{S:'sq',X:'xfull',D:'dot',P:'blank',Q:'blank2',T:'tri'}}}],
+  ans:4, check:'netViews',
+  exp:'1) Qarşı üzlər: ● ilə ▽-nin, ⊠ ilə ▽-nin və ya ■ ilə ⊠-in qarşı-qarşıya düşdüyü açılışlar dərhal düşür, çünki görünüşlərdə bu üzlər yanaşıdır. 2) Qalan iki açılış bir-birinin güzgü əksidir: birində ⊠ ●-un solunda, digərində sağındadır. 1-ci görünüşdə ▽ üstdə, ● öndədir. Açılışda ▽ ●-un altında olduğuna görə açılışı 180° döndərmək lazımdır; bu zaman ●-un solundakı üz sağa keçir. Deməli, ⊠ açılışda ●-un SOLUNDA olmalıdır. Künc qaydası: kubda △ → ⊠ → ● saat əqrəbi istiqamətindədir; doğru açılışda ●-un sol-aşağı küncündə də ▽ → ⊠ → ● alınır.' },
+
+/* ───────────── 4. ARTIQ FİQUR / ANALOGİYA ───────────── */
+{ id:'odd-01', cat:'odd', sub:'Dönmə vs güzgü əksi', diff:2, layout:'none',
+  q:'Hansı fiqur digərlərindən fərqlənir (artıqdır)?',
+  items:[],
+  opts:[[{k:'poly',pts:L_SHAPE}],[{k:'poly',pts:L_SHAPE,rot:90}],[{k:'poly',pts:L_SHAPE,rot:180}],[{k:'poly',pts:L_SHAPE,rot:270}],[{k:'poly',pts:L_SHAPE,rot:90,fx:true}]],
+  ans:4,
+  exp:'Dörd fiqur eyni "L" formasının müxtəlif bucaqlarla dönmüş halıdır. Biri isə güzgü əksidir ("J" forması) — onu hansı bucaqla döndərsəniz də, digərləri ilə üst-üstə düşməz.' },
+
+{ id:'odd-02', cat:'odd', sub:'Say uyğunluğu', diff:1, layout:'none',
+  q:'Hansı fiqur artıqdır?',
+  items:[],
+  opts:[[{k:'ngon',n:3,s:38,y:56},{k:'dots',n:3,y:62,r:4.5,gap:12}],[{k:'square',s:30},{k:'dots',n:4,r:4.5,gap:14}],
+        [{k:'ngon',n:5,s:36,y:52},{k:'dots',n:5,y:54,r:4.5,gap:12}],[{k:'ngon',n:6,s:36},{k:'dots',n:6,r:4.5,gap:13}],
+        [{k:'ngon',n:5,s:36,y:52},{k:'dots',n:4,y:54,r:4.5,gap:13}]],
+  ans:4,
+  exp:'Dörd fiqurda içindəki nöqtələrin sayı fiqurun tərəf sayına bərabərdir (3–3, 4–4, 5–5, 6–6). Artıq fiqur — 4 nöqtəli beşbucaqlı.' },
+
+{ id:'odd-03', cat:'odd', sub:'Elementlərin qarşılıqlı yerləşməsi', diff:2, layout:'none',
+  q:'Hansı fiqur artıqdır?',
+  items:[],
+  opts:[[{k:'circle',s:38},{k:'arrow',s:24,rot:0},{k:'dot',x:88,y:50,s:6}],
+        [{k:'circle',s:38},{k:'arrow',s:24,rot:90},{k:'dot',x:50,y:88,s:6}],
+        [{k:'circle',s:38},{k:'arrow',s:24,rot:225},{k:'dot',x:23.13,y:23.13,s:6}],
+        [{k:'circle',s:38},{k:'arrow',s:24,rot:180},{k:'dot',x:12,y:50,s:6}],
+        [{k:'circle',s:38},{k:'arrow',s:24,rot:45},{k:'dot',x:23.13,y:23.13,s:6}]],
+  ans:4,
+  exp:'Dörd fiqurda qara nöqtə oxun göstərdiyi istiqamətdən 90° saat əqrəbi istiqamətində yerləşir. Artıq fiqurda isə nöqtə oxdan 90° saat əqrəbinin əksi istiqamətindədir (ox sağ-yuxarı, nöqtə sol-yuxarı).' },
+
+{ id:'odd-04', cat:'odd', sub:'Daxili və xarici fiqur', diff:2, layout:'none',
+  q:'Hansı fiqur artıqdır?',
+  items:[],
+  opts:[[{k:'ngon',n:3,s:42,y:58},{k:'square',s:10,y:62,f:'g'}],[{k:'square',s:36},{k:'ngon',n:5,s:17,f:'g'}],
+        [{k:'ngon',n:5,s:41,y:53},{k:'ngon',n:6,s:18,y:54,f:'g'}],[{k:'ngon',n:6,s:41},{k:'ngon',n:7,s:20,f:'g'}],
+        [{k:'square',s:36},{k:'ngon',n:3,s:20,y:53,f:'g'}]],
+  ans:4,
+  exp:'Dörd fiqurda daxili fiqurun tərəf sayı xarici fiqurunkundan 1 çoxdur: 3→4, 4→5, 5→6, 6→7. Artıq fiqurda isə kvadratın içində üçbucaq var — tərəf sayı 1 azdır.' },
+
+{ id:'odd-05', cat:'odd', sub:'Sektorlar arası məsafə', diff:2, layout:'none',
+  q:'Hansı fiqur artıqdır?',
+  items:[],
+  opts:[[{k:'pie',n:6,c:{0:'b',2:'h'}}],[{k:'pie',n:6,c:{1:'b',3:'h'}}],[{k:'pie',n:6,c:{3:'b',5:'h'}}],[{k:'pie',n:6,c:{4:'b',0:'h'}}],[{k:'pie',n:6,c:{2:'b',5:'h'}}]],
+  ans:4,
+  exp:'Dörd fiqur eyni fiqurun dönmüş halıdır: ştrixli sektor qara sektordan saat əqrəbi istiqamətində bir sektor atlayaraq gəlir. Artıq fiqurda qara və ştrixli sektorlar bir-birinin tam qarşısındadır (aralarında iki sektor var).' },
+
+{ id:'odd-06', cat:'odd', sub:'Analogiya: dönmə + inversiya', diff:2, layout:'analogy',
+  q:'Birinci cütlükdəki münasibəti tapın və onu ikinci cütlüyə tətbiq edin.',
+  items:[[{k:'ngon',n:3,s:40,y:57},{k:'circle',s:10,y:57,f:'b'}],[{k:'ngon',n:3,s:40,y:43,rot:180,f:'b'},{k:'circle',s:10,y:43}],
+         [{k:'ngon',n:5,s:38,y:53},{k:'square',s:9,y:53,f:'b'}],null],
+  opts:[[{k:'ngon',n:5,s:38,y:47,rot:180,f:'b'},{k:'square',s:9,y:47}],[{k:'ngon',n:5,s:38,y:47,rot:180},{k:'square',s:9,y:47,f:'b'}],
+        [{k:'ngon',n:5,s:38,y:53,f:'b'},{k:'square',s:9,y:53}],[{k:'ngon',n:5,s:38,y:47,rot:180,f:'b'},{k:'circle',s:10,y:47}],
+        [{k:'ngon',n:5,s:38,y:53},{k:'square',s:9,y:53,f:'b'}]],
+  ans:0,
+  exp:'A → B: fiqur 180° dönür və rənglər tərsinə çevrilir (ağ xarici fiqur qara olur, qara daxili fiqur ağ olur). Eyni qayda: beşbucaqlı 180° dönür (təpəsi aşağı baxır), özü qara, içindəki kvadrat isə ağ olur.' },
+
+{ id:'odd-07', cat:'odd', sub:'Analogiya: say → tərəf', diff:1, layout:'analogy',
+  q:'Birinci cütlükdəki münasibəti ikinci cütlüyə tətbiq edin.',
+  items:[[{k:'dots',n:4,r:7,gap:22}],[{k:'square',s:30}],[{k:'dots',n:6,r:7,gap:22}],null],
+  opts:[[{k:'ngon',n:6,s:36}],[{k:'ngon',n:5,s:36,y:52}],[{k:'ngon',n:7,s:36}],[{k:'dots',n:6,r:7,gap:22,f:'n'}],[{k:'square',s:30}]],
+  ans:0,
+  exp:'A-dakı nöqtələrin sayı B-dəki fiqurun tərəf sayına çevrilir: 4 nöqtə → kvadrat (4 tərəf). Deməli 6 nöqtə → altıbucaqlı. Yeddibucaqlı tərəf saymadan seçənlər üçün çəldiricidir.' },
+
+{ id:'odd-08', cat:'odd', sub:'Analogiya: xətlərin dönməsi', diff:3, layout:'analogy',
+  q:'Birinci cütlükdəki çevrilməni ikinci cütlüyə tətbiq edin.',
+  items:[FR(['N','NE','W']),FR(['E','SE','N']),FR(['S','SW','E','NW']),null],
+  opts:[FR(['W','NW','S','NE']),FR(['E','SE','N','SW']),FR(['N','NE','W','SE']),FR(['S','SE','W','NE']),FR(['S','SW','E','NW'])],
+  ans:0,
+  exp:'A → B: bütün xətlər birlikdə 90° saat əqrəbi istiqamətində dönür (yuxarı → sağ, sağ-yuxarı → sağ-aşağı, sol → yuxarı). C-yə tətbiq edək: aşağı → sol, sol-aşağı → sol-yuxarı, sağ → aşağı, sol-yuxarı → sağ-yuxarı. Əks istiqamətdə dönmə və güzgü əksi çəldiricidir.' },
+
+{ id:'odd-09', cat:'odd', sub:'Analogiya: iki dəyişən', diff:2, layout:'analogy',
+  q:'Birinci cütlükdəki münasibəti ikinci cütlüyə tətbiq edin.',
+  items:[[{k:'ngon',n:3,s:40,y:57},{k:'dots',n:1,y:62,r:5}],[{k:'square',s:32},{k:'dots',n:2,r:5,gap:15}],
+         [{k:'ngon',n:5,s:38,y:53},{k:'dots',n:3,y:55,r:5,gap:14}],null],
+  opts:[[{k:'ngon',n:6,s:38},{k:'dots',n:4,r:5,gap:15}],[{k:'ngon',n:6,s:38},{k:'dots',n:3,r:5,gap:14}],
+        [{k:'ngon',n:5,s:38,y:53},{k:'dots',n:4,y:55,r:5,gap:15}],[{k:'ngon',n:7,s:38},{k:'dots',n:4,r:5,gap:15}],
+        [{k:'ngon',n:6,s:38},{k:'dots',n:5,r:5,gap:14}]],
+  ans:0,
+  exp:'A → B: fiqurun tərəf sayı 1 artır (3 → 4) və nöqtələrin sayı da 1 artır (1 → 2). C-yə tətbiq: beşbucaqlı → altıbucaqlı, 3 nöqtə → 4 nöqtə.' }
+];
+/*BANK-END*/
+
+/* Bankın avtomatik yoxlanması (xətalar brauzer konsoluna yazılır) */
+function validateBank(bank){
+  const errs=[], ids=new Set();
+  for(const q of bank){
+    const E=m=>errs.push(`${q.id}: ${m}`);
+    if(ids.has(q.id)) E('id təkrarlanır'); ids.add(q.id);
+    if(!CATS[q.cat]) E('naməlum kateqoriya');
+    if(!Array.isArray(q.opts)||q.opts.length<2) E('variantlar yoxdur');
+    if(!(q.ans>=0 && q.ans<q.opts.length)) E('ans indeksi səhvdir');
+    const js=q.opts.map(o=>JSON.stringify(o)); if(new Set(js).size!==js.length) E('eyni variant təkrarlanır');
+    if(q.cat==='cube' && q.check){
+      if(q.check==='netViews'){ const vl=q.items.map(i=>i.cube);
+        q.opts.forEach((o,i)=>{ const r=Cube.matchViews(o.net, vl); if(!r) E(`variant ${i}: açılış səhvdir`); else if(r.ok!==(i===q.ans)) E(`variant ${i} uyğun gəlmir`); });
+        continue; }
+      if(q.check==='views'){
+        const cs=Cube.consistent(q.syms, q.items.map(i=>i.cube)), set=new Set(cs.map(f=>Cube.opposites(f)[q.of]));
+        if(set.size!==1) E('görünüşlər qarşı üzü birmənalı təyin etmir'); else if(q.opts[q.ans][0].sym!==[...set][0]) E('cavab səhvdir');
+        continue;
+      }
+      const net=q.items[0].net, sf=Cube.symFaces(net); if(!sf.ok){ E(sf.err); continue; }
+      if(q.check==='opp'){ if(Cube.opposites(sf.faces)[q.of]!==q.opts[q.ans][0].sym) E('qarşı üz səhvdir'); }
+      else { const v=q.opts.map(o=>Cube.reason(sf.faces,o.cube).ok);
+        const want = q.check==='can'; v.forEach((ok,i)=>{ if((i===q.ans)? ok!==want : ok===want) E(`variant ${i} uyğun gəlmir`); }); }
+    }
+  }
+  errs.forEach(e=>console.warn('[Sual bankı] '+e));
+  return errs;
+}
+
+/* ============================================================
+   5) YADDAŞ (localStorage; əlçatmaz olarsa — yalnız yaddaşda)
+   ============================================================ */
+const Store = {
+  K:'fiqur-mentiqi-v1',
+  d:{ mist:{}, hist:{}, set:{shuffleQs:false, theme:'light', exN:20, exT:60} },
+  load(){ try{ const s=JSON.parse(localStorage.getItem(this.K)); if(s){ Object.assign(this.d.mist,s.mist||{}); Object.assign(this.d.hist,s.hist||{}); Object.assign(this.d.set,s.set||{}); } }catch(e){} },
+  save(){ try{ localStorage.setItem(this.K, JSON.stringify(this.d)); }catch(e){} },
+  record(id, ok){ const h=this.d.hist[id]||(this.d.hist[id]={a:0,c:0}); h.a++; if(ok) h.c++; this.save(); },
+  addMistake(id){ const m=this.d.mist[id]||(this.d.mist[id]={n:0,t:0}); m.n++; m.t=Date.now(); this.save(); },
+  removeMistake(id){ delete this.d.mist[id]; this.save(); }
+};
+
+/* ============================================================
+   6) EKRANLAR VƏ İDARƏETMƏ
+   ============================================================ */
+
+/* ============================================================
+   3D KUB İZAHI — açılışı 3D-də qatlayır, variantlara görə fırladır.
+   Kub suallarında cavabdan sonra izah qutusunda görünür.
+   ============================================================ */
+const C3D = (() => {
+  const VIEW_PITCH=-24, VIEW_YAW=-32, UP=[0,1,0], FRONT=[0,0,1], RIGHT=[1,0,0];
+  const nm = s => SYM_NAME[s] || s;
+  function netFor(q){
+    if(q.layout==='net') return q.items[0].net;
+    const f=Cube.consistent(q.syms, q.items.map(i=>i.cube))[0]; if(!f) return null;
+    const rows=['.A..','BCDE','.F..'], fl=Cube.fold(rows), faces={};
+    for(const k in fl.faces) faces[fl.faces[k]]=f[k];
+    return {rows, faces};
+  }
+  function tree(rows){
+    const cells=[]; rows.forEach((r,i)=>[...r].forEach((ch,j)=>{ if(ch!=='.'&&ch!==' ') cells.push({ch,i,j,kids:[]}); }));
+    const at=(i,j)=>cells.find(c=>c.i===i&&c.j===j), root=cells[0], seen=new Set([root]), q=[root];
+    while(q.length){ const c=q.shift();
+      for(const [di,dj,dir] of [[0,1,'R'],[0,-1,'L'],[1,0,'D'],[-1,0,'U']]){ const nb=at(c.i+di,c.j+dj);
+        if(nb&&!seen.has(nb)){ seen.add(nb); nb.dir=dir; c.kids.push(nb); q.push(nb); } } }
+    return {root, cells};
+  }
+  const faceHTML=(c,net)=>`<div class="f3" data-ch="${c.ch}"${c.dir?` data-dir="${c.dir}"`:''}><div class="sd fr"><svg viewBox="0 0 100 100" aria-hidden="true">${faceInner(net.faces[c.ch])}</svg></div><div class="sd bk"></div>${c.kids.map(k=>faceHTML(k,net)).join('')}</div>`;
+  function cssMatrix(M){ // həlledici koordinatları (y yuxarı) → CSS (y aşağı)
+    const P=[1,-1,1], c=(r,k)=>P[r]*M[r][k]*P[k];
+    return `matrix3d(${c(0,0)},${c(1,0)},${c(2,0)},0,${c(0,1)},${c(1,1)},${c(2,1)},0,${c(0,2)},${c(1,2)},${c(2,2)},0,0,0,0,1)`;
+  }
+  // görünüş uyğun gəlmirsə, səbəbi mətnlə
+  function viewText(faces, v, i){
+    const r=Cube.reason(faces, v);
+    if(r.ok) return {ok:true, M:Cube.orient(faces,{[v[0]]:UP,[v[1]]:FRONT}), hl:v, txt:`${i+1}-ci görünüşə uyğundur ✓`};
+    if(r.why==='opp') return {ok:false, M:Cube.orient(faces,{[r.a]:FRONT}), hl:[r.a,r.b],
+      txt:`bu açılışda ${nm(r.a)} ilə ${nm(r.b)} qarşı-qarşıyadır (biri öndə olanda o biri arxada qalır), amma ${i+1}-ci görünüşdə yanaşıdır ✗`};
+    const M=Cube.orient(faces,{[v[0]]:UP,[v[1]]:FRONT}), real=Cube.at(faces,M,RIGHT);
+    return {ok:false, M, hl:v, txt:`${i+1}-ci görünüşdəki kimi üstdə ${nm(v[0])}, öndə ${nm(v[1])} qoyanda sağda <b>${nm(real)}</b> görünür, ${nm(v[2])} isə solda qalır — güzgü əksi ✗`};
+  }
+
+  function html(q, order){ return `<div class="c3d" data-q="${q.id}" data-order="${order.join(',')}"></div>`; }
+
+  function mount(el){
+    const q=byId[el.dataset.q], order=el.dataset.order.split(',').map(Number);
+    const views = q.layout==='views' ? q.items.map(i=>i.cube) : null;
+    let nets;
+    if(q.check==='netViews') nets=order.map(oi=>Cube.matchViews(q.opts[oi].net, views));
+    else { const n=netFor(q); const sf=n&&Cube.symFaces(n); if(!sf||!sf.ok){ el.remove(); return; } nets=[{net:n, faces:sf.faces}]; }
+    const w=el.clientWidth||340, cols=Math.max(...nets.map(n=>Math.max(...n.net.rows.map(r=>r.length)))), nrows=Math.max(...nets.map(n=>n.net.rows.length));
+    const s=Math.max(44, Math.min(74, Math.floor((w-24)/(cols+0.6)), Math.floor(300/(nrows+0.6))));
+
+    let btns='', btns2='';
+    if(q.check==='can'||q.check==='cannot')
+      btns=order.map((oi,d)=>`<button class="btn sm" data-c3="opt" data-i="${oi}">${LET[d]} variantı</button>`).join('');
+    else if(q.check==='opp'){
+      const o=Cube.opposites(nets[0].faces)[q.of];
+      btns=`<button class="btn sm" data-c3="front" data-s="${q.of}">${nm(q.of)} öndə</button><button class="btn sm" data-c3="front" data-s="${o}">Qarşı üz öndə</button>`;
+    } else if(q.check==='views'){
+      btns=views.map((v,i)=>`<button class="btn sm" data-c3="view" data-i="${i}">${i+1}-ci görünüş</button>`).join('')+
+        `<button class="btn sm" data-c3="front" data-s="${Cube.opposites(nets[0].faces)[q.of]}">Cavab üzü öndə</button>`;
+    } else if(q.check==='netViews'){
+      btns=order.map((oi,d)=>`<button class="btn sm" data-c3="net" data-k="${d}">${LET[d]} açılışı</button>`).join('');
+      btns2=views.map((v,i)=>`<button class="btn sm" data-c3="view" data-i="${i}">${i+1}-ci görünüş</button>`).join('');
+    }
+    el.innerHTML=`<div class="c3h"><b>3D baxış</b> <span class="muted small">· kubu barmaqla / siçanla sürüşdürərək fırladın</span></div>
+      ${q.check==='netViews'?`<div class="small" style="margin-bottom:6px">Açılış: <b class="c3n"></b></div>`:''}
+      <div class="stage" style="--s:${s}px;height:${Math.round(s*(Math.max(nrows,3)+1.4))}px"><div class="wrap3"></div></div>
+      <div class="row-btns c3c"><button class="btn sm pri" data-c3="fold">Qatla</button>
+        <input type="range" min="0" max="100" value="0" aria-label="Qatlanma dərəcəsi" class="c3r">
+        <button class="btn sm ghost" data-c3="reset">Sıfırla</button></div>
+      ${btns?`<div class="row-btns c3c">${btns}</div>`:''}${btns2?`<div class="row-btns c3c">${btns2}</div>`:''}
+      <div class="c3m small" aria-live="polite">Açılışı qatlamaq üçün "Qatla" düyməsini basın və ya sürgünü çəkin.</div>`;
+
+    const stage=el.querySelector('.stage'), wrap=el.querySelector('.wrap3'), range=el.querySelector('.c3r'), msg=el.querySelector('.c3m'), foldBtn=el.querySelector('[data-c3=fold]'), nlab=el.querySelector('.c3n');
+    wrap.style.transformOrigin=`50% 50% ${-s/2}px`;
+    const ID=Cube.ROT.find(M=>M[0][0]===1&&M[1][1]===1&&M[2][2]===1);
+    const st={p:0, M:ID, pitch:VIEW_PITCH, yaw:VIEW_YAW, anim:null};
+    let cur, faces, symToCh, kids, offX, offY;
+
+    function load(k){
+      cur=nets[k]; faces=cur.faces; symToCh={}; for(const ch in cur.net.faces) symToCh[cur.net.faces[ch]]=ch;
+      const T=tree(cur.net.rows); wrap.style.transition='none'; wrap.innerHTML=faceHTML(T.root,cur.net);
+      kids=[...wrap.querySelectorAll('.f3[data-dir]')];
+      const js=T.cells.map(c=>c.j), is=T.cells.map(c=>c.i);
+      offX=(T.root.j+0.5-(Math.min(...js)+Math.max(...js)+1)/2)*s; offY=(T.root.i+0.5-(Math.min(...is)+Math.max(...is)+1)/2)*s;
+      cancelAnimationFrame(st.anim); st.p=0; st.M=ID; st.pitch=VIEW_PITCH; st.yaw=VIEW_YAW;
+      if(nlab) nlab.textContent=LET[k]+(k===order.indexOf(q.ans)?' (doğru cavab)':'');
+      apply();
+    }
+    function apply(){
+      const a=st.p*90, k=1+0.45*st.p;
+      kids.forEach(x=>{ const d=x.dataset.dir;
+        x.style.transform = d==='R'?`rotateY(${a}deg)`: d==='L'?`rotateY(${-a}deg)`: d==='D'?`rotateX(${-a}deg)`:`rotateX(${a}deg)`; });
+      wrap.style.transform=`scale3d(${k},${k},${k}) rotateX(${st.pitch}deg) rotateY(${st.yaw}deg) ${cssMatrix(st.M)} translate3d(${offX*(1-st.p)}px,${offY*(1-st.p)}px,${-s/2*(1-st.p)}px)`;
+      range.value=Math.round(st.p*100);
+      foldBtn.textContent = st.p>0.5 ? 'Aç' : 'Qatla';
+    }
+    function animFold(to, done){
+      cancelAnimationFrame(st.anim); wrap.style.transition='none';
+      const from=st.p, t0=performance.now(), dur=700*Math.abs(to-from)+1;
+      const step=t=>{ const k=Math.min(1,(t-t0)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2; st.p=from+(to-from)*e; apply();
+        if(k<1) st.anim=requestAnimationFrame(step); else if(done) done(); };
+      st.anim=requestAnimationFrame(step);
+    }
+    function turn(M){
+      const go=()=>{ wrap.style.transition='transform .6s ease'; st.M=M||ID; st.pitch=VIEW_PITCH; st.yaw=VIEW_YAW; apply(); };
+      if(st.p<1) animFold(1, ()=>requestAnimationFrame(go)); else go();
+    }
+    function highlight(list){ wrap.querySelectorAll('.fr.hl').forEach(x=>x.classList.remove('hl'));
+      list.forEach(sym=>{ const f=wrap.querySelector(`.f3[data-ch="${symToCh[sym]}"] > .fr`); if(f) f.classList.add('hl'); }); }
+    function setActive(b, group){ el.querySelectorAll(`.c3c [data-c3${group?`="${group}"`:''}].on`).forEach(x=>x.classList.remove('on')); if(b) b.classList.add('on'); }
+
+    el.addEventListener('click', e=>{
+      const b=e.target.closest('[data-c3]'); if(!b) return; const a=b.dataset.c3;
+      if(a==='fold'){ if(st.p>0.5){ wrap.style.transition='transform .4s ease'; st.M=ID; apply(); highlight([]); setTimeout(()=>animFold(0),420); } else animFold(1); return; }
+      if(a==='reset'){ wrap.style.transition='transform .5s ease'; st.M=ID; st.pitch=VIEW_PITCH; st.yaw=VIEW_YAW; highlight([]); setActive(null);
+        msg.textContent='Başlanğıc vəziyyət.'; animFold(0); return; }
+      if(a==='net'){
+        const k=+b.dataset.k; setActive(b,'net'); setActive(null,'view'); load(k);
+        const n=nets[k]; let r=null; for(let i=0;i<views.length;i++){ const t=viewText(n.faces, views[i], i); if(!t.ok){ r=t; break; } }
+        if(!r){ const t=viewText(n.faces, views[0], 0); requestAnimationFrame(()=>turn(t.M)); highlight(t.hl);
+          msg.innerHTML=`<b>${LET[k]} açılışı</b>: qatlananda hər üç görünüş alınır — <b>doğru ✓</b>. Görünüş düymələri ilə yoxlayın.`; }
+        else { requestAnimationFrame(()=>turn(r.M)); highlight(r.hl); msg.innerHTML=`<b>${LET[k]} açılışı</b>: ${r.txt}`; }
+        return;
+      }
+      if(a==='view' && views){
+        const i=+b.dataset.i; setActive(b,'view'); const t=viewText(faces, views[i], i); turn(t.M); highlight(t.hl);
+        msg.innerHTML = q.check==='netViews' ? `${nlab?'<b>'+nlab.textContent.split(' ')[0]+' açılışı</b>, ':''}${t.txt}` :
+          `${i+1}-ci görünüş: üstdə ${nm(views[i][0])}, öndə ${nm(views[i][1])}, sağda ${nm(views[i][2])}.`;
+        return;
+      }
+      setActive(b);
+      if(a==='opt'){
+        const t=q.opts[+b.dataset.i].cube, r=Cube.reason(faces,t), L=b.textContent.split(' ')[0];
+        if(r.ok){ turn(Cube.orient(faces,{[t[0]]:UP,[t[1]]:FRONT})); highlight(t);
+          msg.innerHTML=`<b>${L}</b>: üstdə ${nm(t[0])}, öndə ${nm(t[1])}, sağda ${nm(t[2])}. Bu vəziyyət kubda var — <b>alınır ✓</b>`; }
+        else if(r.why==='opp'){ turn(Cube.orient(faces,{[r.a]:FRONT})); highlight([r.a,r.b]);
+          msg.innerHTML=`<b>${L}</b>: ${nm(r.a)} öndə olanda ${nm(r.b)} arxada qalır — bu iki üz qarşı-qarşıyadır, birlikdə görünə bilməz. <b>Alınmır ✗</b> (Kubu fırladıb arxa üzə baxın.)`; }
+        else { const M=Cube.orient(faces,{[t[0]]:UP,[t[1]]:FRONT}); turn(M); const real=Cube.at(faces,M,RIGHT); highlight(t);
+          msg.innerHTML=`<b>${L}</b>: üstdə ${nm(t[0])}, öndə ${nm(t[1])} olanda sağda <b>${nm(real)}</b> görünür, ${nm(t[2])} isə solda qalır. Variant güzgü əksidir — <b>alınmır ✗</b>`; }
+      } else if(a==='front'){
+        const sy=b.dataset.s; turn(Cube.orient(faces,{[sy]:FRONT})); const o=Cube.opposites(faces)[sy]; highlight([sy,o]);
+        msg.innerHTML=`Öndə ${nm(sy)}; onun qarşısında (arxada) ${nm(o)} durur. Kubu fırladıb yoxlayın.`;
+      }
+    });
+    range.addEventListener('input', ()=>{ cancelAnimationFrame(st.anim); wrap.style.transition='none'; st.p=range.value/100; apply(); });
+    let drag=null;
+    stage.addEventListener('pointerdown', e=>{ drag={x:e.clientX,y:e.clientY,p:st.pitch,yw:st.yaw}; wrap.style.transition='none'; stage.setPointerCapture(e.pointerId); stage.classList.add('drag'); });
+    stage.addEventListener('pointermove', e=>{ if(!drag) return; st.yaw=drag.yw+(e.clientX-drag.x)*0.6; st.pitch=drag.p-(e.clientY-drag.y)*0.6; apply(); });
+    const end=()=>{ drag=null; stage.classList.remove('drag'); };
+    stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
+    load(q.check==='netViews' ? order.indexOf(q.ans) : 0);
+    if(q.check==='netViews'){ const b=el.querySelector(`[data-c3="net"][data-k="${order.indexOf(q.ans)}"]`); if(b) b.classList.add('on'); }
+  }
+  function mountAll(root){ root.querySelectorAll('.c3d:not([data-m])').forEach(el=>{ el.dataset.m='1'; mount(el); }); }
+  return {html, mountAll, viewText};
+})();
+
+const $app = document.getElementById('app');
+const LET = ['A','B','C','D','E','F'];
+const byId = Object.fromEntries(BANK.map(q=>[q.id,q]));
+const S = { view:'home', sess:null, timerId:null, help:false, confirm:null, hint:'' };
+
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function fmtTime(sec){ sec=Math.max(0,Math.round(sec)); return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0'); }
+function pct(a,b){ return b? Math.round(100*a/b) : 0; }
+
+function newSession(mode, ids, title){
+  const set=Store.d.set;
+  if(mode!=='exam' && set.shuffleQs) ids=shuffle(ids);
+  const order={}; ids.forEach(id=>{ const n=byId[id].opts.length, base=[...Array(n).keys()]; order[id]= shuffle(base); /* variantlar həmişə qarışdırılır */ });
+  return { mode, title, ids, i:0, order, sel:{}, done:{}, ok:{}, start:Date.now(), endAt:null, finished:false };
+}
+function startPractice(cat){
+  const ids = BANK.filter(q=>cat==='all'||q.cat===cat).map(q=>q.id);
+  S.sess=newSession('practice', ids, cat==='all'?'Qarışıq məşq':CATS[cat].name); go('quiz');
+}
+function startReview(ids, title){ if(!ids.length) return; S.sess=newSession('review', ids, title||'Səhv dəftəri'); go('quiz'); }
+function startExam(){
+  const set=Store.d.set, pools={}; Object.keys(CATS).forEach(c=>pools[c]=shuffle(BANK.filter(q=>q.cat===c).map(q=>q.id)));
+  const N=Math.min(set.exN==='all'?BANK.length:set.exN, BANK.length), pick=[];
+  while(pick.length<N){ for(const c in pools){ if(pick.length<N && pools[c].length) pick.push(pools[c].pop()); } }
+  const s=newSession('exam', shuffle(pick), 'Sınaq'); s.endAt=Date.now()+N*set.exT*1000; s.limit=N*set.exT;
+  S.sess=s; go('quiz'); startTimer();
+}
+function startTimer(){ stopTimer(); S.timerId=setInterval(()=>{
+  const s=S.sess; if(!s||s.mode!=='exam'||s.finished){ stopTimer(); return; }
+  const left=(s.endAt-Date.now())/1000, el=document.getElementById('timer');
+  if(el){ el.textContent=fmtTime(left); el.classList.toggle('warn', left<=60); }
+  if(left<=0) finishExam(true);
+}, 250); }
+function stopTimer(){ if(S.timerId){ clearInterval(S.timerId); S.timerId=null; } }
+
+function go(view){ S.view=view; S.confirm=null; S.hint=''; render(); window.scrollTo(0,0); }
+
+/* ---------- render helpers ---------- */
+function tile(fig, cls=''){ return fig===null ? `<div class="tile qm ${cls}"><span>?</span></div>` : `<div class="tile ${cls}">${figSVG(fig)}</div>`; }
+function stemHTML(q){
+  const it=q.items||[];
+  switch(q.layout){
+    case 'row': return `<div class="stem row" style="--n:${it.length}">${it.map(f=>tile(f)).join('')}</div>`;
+    case 'grid': return `<div class="stem grid" style="--c:${q.cols||3}">${it.map(f=>tile(f)).join('')}</div>`;
+    case 'analogy': return `<div class="stem analogy">${tile(it[0])}<span class="op">→</span>${tile(it[1])}<span class="sep"></span>${tile(it[2])}<span class="op">→</span>${tile(it[3]??null)}</div>`;
+    case 'net': return `<div class="stem net">${tile(it[0],'big')}</div>`;
+    case 'views': return `<div class="stem views" style="--n:${it.length}">${it.map((f,i)=>`<div>${tile(f)}<div class="vlab">${i+1}-ci görünüş</div></div>`).join('')}</div>`;
+    default: return '';
+  }
+}
+function cubeNotes(q, order){
+  if(q.cat!=='cube') return '';
+  if(q.check==='views') return '';
+  if(q.check==='netViews'){ const vl=q.items.map(i=>i.cube);
+    return '<ul>'+order.map((oi,d)=>{ const r=Cube.matchViews(q.opts[oi].net, vl);
+      return `<li><b>${LET[d]}</b>: ${r.ok?'bütün görünüşlər alınır ✓': C3D.viewText(r.faces, vl[r.fi], r.fi).txt}</li>`; }).join('')+'</ul>'; }
+  const sf=Cube.symFaces(q.items[0].net); if(!sf.ok) return '';
+  const o=Cube.opposites(sf.faces), seen=new Set(), pairs=[];
+  for(const a in o){ if(!seen.has(a)){ seen.add(a); seen.add(o[a]); pairs.push(`${SYM_NAME[a]} – ${SYM_NAME[o[a]]}`); } }
+  let html=`<p class="small"><b>Qarşı-qarşıya üzlər:</b> ${pairs.join('; ')}.</p>`;
+  if(q.check==='can'||q.check==='cannot'){
+    html+='<ul>'+order.map((oi,d)=>{ const t=q.opts[oi].cube, r=Cube.reason(sf.faces,t);
+      return `<li><b>${LET[d]}</b>: ${r.ok?'alınır ✓': r.why==='opp' ? `alınmır — ${SYM_NAME[r.a]} və ${SYM_NAME[r.b]} qarşı üzlərdir, birlikdə görünə bilməz` : 'alınmır — üzlər düzgündür, amma düzülüşü güzgü əksidir (istiqamət tərsdir)'}</li>`; }).join('')+'</ul>';
+  }
+  return html;
+}
+function optionsHTML(q, s, opts={}){
+  const order=s.order[q.id], sel=s.sel[q.id], shown=opts.reveal;
+  const wide=q.opts.some(o=>o&&(o.cube||o.net));
+  return `<div class="opts${wide?' wide':''}" role="radiogroup" aria-label="Variantlar">` + order.map((oi,d)=>{
+    let c='';
+    if(shown){ if(oi===q.ans) c='right'; else if(d===sel) c='wrong'; else c='dim'; }
+    else if(d===sel) c='sel';
+    return `<button class="opt ${c}" ${shown||opts.ro?'disabled':''} data-act="pick" data-d="${d}" role="radio" aria-checked="${d===sel}" aria-label="Variant ${LET[d]}">
+      <div class="fig">${figSVG(q.opts[oi])}</div><span class="lab"><b>${LET[d]}</b><kbd>${d+1}</kbd></span></button>`;
+  }).join('') + `</div>`;
+}
+function feedbackHTML(q, s){
+  const d=s.sel[q.id], order=s.order[q.id], right=order.indexOf(q.ans), ok=order[d]===q.ans, blank=d===undefined;
+  return `<div class="feedback ${ok?'ok':'bad'}" role="status"><div class="h">${ok?'Doğrudur ✓': blank?'Cavab verilməyib':'Səhv ✗'} — doğru cavab: ${LET[right]}</div>
+    <p>${q.exp}</p>${cubeNotes(q, order)}${q.cat==='cube'&&q.check?C3D.html(q,order):''}</div>`;
+}
+function qMeta(q){ return `<span class="tag">${CATS[q.cat].name}</span><span class="tag">${q.sub}</span><span class="tag">${'●'.repeat(q.diff||1)}${'○'.repeat(3-(q.diff||1))}</span>`; }
+
+/* ---------- views ---------- */
+function viewHome(){
+  const set=Store.d.set, mN=Object.keys(Store.d.mist).filter(id=>byId[id]).length;
+  const cats=Object.entries(CATS).map(([k,c])=>{
+    const qs=BANK.filter(q=>q.cat===k); let a=0,cr=0,seen=0;
+    qs.forEach(q=>{ const h=Store.d.hist[q.id]; if(h){ seen++; a+=h.a; cr+=h.c; } });
+    return `<div class="card cat"><h3>${c.name}</h3><div class="meta">${c.desc}</div>
+      <div class="small muted">${qs.length} sual · işlənib: ${seen} · dəqiqlik: ${a?pct(cr,a)+'%':'—'}</div>
+      <div class="bar"><i style="width:${a?pct(cr,a):0}%"></i></div>
+      <div class="row-btns"><button class="btn pri sm" data-act="practice" data-cat="${k}">Məşq et</button></div></div>`;
+  }).join('');
+  const seg=(key,vals,labels)=>`<span class="seg">${vals.map((v,i)=>`<button data-act="set" data-k="${key}" data-v="${v}" aria-pressed="${String(set[key])===String(v)}">${labels[i]}</button>`).join('')}</span>`;
+  return `
+  <h2 style="margin-top:4px">Mövzu üzrə məşq</h2>
+  <div class="cats">${cats}</div>
+  <div class="row-btns" style="margin-top:12px">
+    <button class="btn" data-act="practice" data-cat="all">Bütün mövzular ardıcıl</button>
+    <label class="chk"><input type="checkbox" data-act="toggle" data-k="shuffleQs" ${set.shuffleQs?'checked':''}> Sualları qarışdır</label>
+  </div>
+  <h2>Sınaq (vaxt rejimi)</h2>
+  <div class="card">
+    <div class="small muted">Bütün kateqoriyalardan bərabər paylanmış qarışıq suallar. Cavablar sonda yoxlanır; nəticədə kateqoriya üzrə statistika göstərilir.</div>
+    <div class="cfg"><span>Sual sayı</span>${seg('exN',[10,20,'all'],['10','20',`Hamısı (${BANK.length})`])}
+      <span>Hər suala vaxt</span>${seg('exT',[45,60,90],['45 san','60 san','90 san'])}</div>
+    <div class="row-btns"><button class="btn pri" data-act="exam">Sınağa başla</button>
+      <span class="small muted">Ümumi vaxt: ${fmtTime(Math.min(set.exN==='all'?BANK.length:set.exN,BANK.length)*set.exT)}</span></div>
+  </div>
+  <h2>Səhv dəftəri</h2>
+  <div class="card row-btns" style="justify-content:space-between">
+    <span>${mN? `<b>${mN}</b> sual təkrar gözləyir` : '<span class="muted">Hələ səhv yoxdur</span>'}</span>
+    <span class="row-btns"><button class="btn sm" data-act="nav" data-v="mistakes" ${mN?'':'disabled'}>Dəftərə bax</button>
+    <button class="btn pri sm" data-act="reviewAll" ${mN?'':'disabled'}>Səhvləri işlə</button></span>
+  </div>`;
+}
+
+function viewQuiz(){
+  const s=S.sess, id=s.ids[s.i], q=byId[id], N=s.ids.length, exam=s.mode==='exam', done=!!s.done[id];
+  const head=`<div class="qhead">
+    <span class="prog">${s.title} · ${s.i+1} / ${N}</span><span style="flex:1"></span>
+    ${exam?`<span class="timer" id="timer" aria-live="off">${fmtTime((s.endAt-Date.now())/1000)}</span><button class="btn sm" data-act="askFinish">Bitir</button>`
+          :`<button class="btn sm ghost" data-act="home">Çıxış</button>`}</div>
+    <div class="bar" style="margin:0 0 14px"><i style="width:${pct(exam?Object.keys(s.sel).length:Object.keys(s.done).length,N)}%"></i></div>`;
+  let body=`<div class="card"><div class="row-btns">${qMeta(q)}</div><div class="qtext">${q.q}</div>${stemHTML(q)}
+    ${optionsHTML(q,s,{reveal:done})}<div class="hint" id="hint">${S.hint}</div>`;
+  if(exam){
+    body+=`<div class="actions"><button class="btn" data-act="prev" ${s.i===0?'disabled':''}>← Əvvəlki</button>
+      <button class="btn pri" data-act="next">${s.i===N-1?'Sonuncu sual':'Növbəti →'} <kbd>Enter</kbd></button></div>
+      <div class="palette" aria-label="Suallar">${s.ids.map((x,i)=>`<button data-act="jump" data-i="${i}" class="${s.sel[x]!==undefined?'ans':''} ${i===s.i?'cur':''}" aria-label="Sual ${i+1}">${i+1}</button>`).join('')}</div>`;
+    if(S.confirm==='finish'){ const blank=N-Object.keys(s.sel).length;
+      body+=`<div class="confirm card"><p>${blank?`<b>${blank}</b> sual cavabsızdır. `:''}Sınağı bitirmək istəyirsiniz?</p>
+        <div class="row-btns" style="justify-content:center"><button class="btn pri" data-act="finish">Bəli, bitir</button><button class="btn" data-act="cancelFinish">Davam et</button></div></div>`; }
+  } else {
+    body+= done ? feedbackHTML(q,s)+`<div class="actions"><button class="btn pri" data-act="next" id="nextBtn">${s.i===N-1?'Nəticəni gör':'Növbəti sual'} <kbd>Enter</kbd></button></div>`
+                : `<div class="actions"><button class="btn pri" data-act="confirm">Təsdiqlə <kbd>Enter</kbd></button></div>`;
+  }
+  return head+body+'</div>';
+}
+
+function catTable(rows){
+  const minAcc=Math.min(...rows.filter(r=>r.t).map(r=>pct(r.ok,r.t)));
+  return `<table class="st"><thead><tr><th>Kateqoriya</th><th class="n">Doğru</th><th class="n">Səhv</th><th class="n">Boş</th><th class="n">%</th><th></th></tr></thead><tbody>`+
+    rows.filter(r=>r.t).map(r=>{ const p=pct(r.ok,r.t), weak=rows.filter(x=>x.t).length>1 && p===minAcc && p<100;
+      return `<tr class="${weak?'weak':''}"><td>${CATS[r.c].name}${weak?' <span class="tag" style="color:var(--bad);border-color:var(--bad)">zəif</span>':''}</td><td class="n">${r.ok}</td><td class="n">${r.bad}</td><td class="n">${r.blank}</td><td class="n">${p}</td><td><div class="pbar"><i style="width:${p}%"></i></div></td></tr>`; }).join('')+`</tbody></table>`;
+}
+function reviewItem(q, s, idx){
+  const d=s.sel[q.id], status = d===undefined ? 'boş' : 'səhv';
+  return `<details class="rv"><summary>${idx}. ${CATS[q.cat].name} — ${q.sub} <span class="muted small">(${status})</span></summary><div class="in">
+    <div class="qtext">${q.q}</div>${stemHTML(q)}${optionsHTML(q,s,{reveal:true})}${feedbackHTML(q,s)}</div></details>`;
+}
+function viewResult(){
+  const s=S.sess, N=s.ids.length, rows=Object.keys(CATS).map(c=>({c,t:0,ok:0,bad:0,blank:0}));
+  const R=Object.fromEntries(rows.map(r=>[r.c,r])), wrong=[];
+  s.ids.forEach(id=>{ const q=byId[id], r=R[q.cat]; r.t++; if(s.sel[id]===undefined){ r.blank++; wrong.push(id);} else if(s.ok[id]) r.ok++; else { r.bad++; wrong.push(id);} });
+  const ok=rows.reduce((a,r)=>a+r.ok,0), used=Math.round(((s.finishedAt||Date.now())-s.start)/1000);
+  const weak=rows.filter(r=>r.t).sort((a,b)=>pct(a.ok,a.t)-pct(b.ok,b.t))[0];
+  return `<div class="card"><div class="score"><span class="big">${ok} / ${N}</span><span>${pct(ok,N)}% doğru</span>
+      <span class="muted">Vaxt: ${fmtTime(used)}${s.limit?` / ${fmtTime(s.limit)}`:''}</span>${s.timeout?'<span class="tag" style="color:var(--bad);border-color:var(--bad)">vaxt bitdi</span>':''}</div>
+    ${weak && pct(weak.ok,weak.t)<100 ? `<p class="small">Ən çox diqqət tələb edən mövzu: <b>${CATS[weak.c].name}</b> (${pct(weak.ok,weak.t)}%).</p>`:'<p class="small">Bütün kateqoriyalarda səhvsiz! 👏</p>'}
+    ${catTable(rows)}
+    <div class="actions">${wrong.length?`<button class="btn pri" data-act="reviewThese">Səhvləri yenidən işlə (${wrong.length})</button>`:''}
+      <button class="btn" data-act="${s.mode==='exam'?'exam':'restart'}">${s.mode==='exam'?'Yeni sınaq':'Yenidən başla'}</button>
+      <button class="btn" data-act="home">Ana səhifə</button></div></div>
+    ${wrong.length?`<h2>Səhv və boş suallar — həll izahı</h2>${wrong.map((id,i)=>reviewItem(byId[id],s,i+1)).join('')}`:''}`;
+}
+function viewMistakes(){
+  const ids=Object.keys(Store.d.mist).filter(id=>byId[id]);
+  if(!ids.length) return `<div class="card empty">Səhv dəftəri boşdur.<div class="actions"><button class="btn" data-act="home">Ana səhifə</button></div></div>`;
+  const groups=Object.keys(CATS).map(c=>({c, ids:ids.filter(id=>byId[id].cat===c)})).filter(g=>g.ids.length);
+  return `<div class="row-btns" style="justify-content:space-between;margin-bottom:10px"><span><b>${ids.length}</b> sual dəftərdədir. Düzgün cavablandırdığınız sual dəftərdən avtomatik çıxır.</span>
+    <span class="row-btns"><button class="btn pri" data-act="reviewAll">Hamısını işlə</button>
+    ${S.confirm==='clear'?`<button class="btn" data-act="clearYes" style="color:var(--bad)">Təsdiqlə: təmizlə</button><button class="btn" data-act="clearNo">Ləğv et</button>`:`<button class="btn ghost" data-act="clearAsk">Dəftəri təmizlə</button>`}</span></div>`+
+    groups.map(g=>`<h2>${CATS[g.c].name} <span class="muted small">(${g.ids.length})</span> <button class="btn sm" data-act="reviewCat" data-cat="${g.c}">Bu mövzunu işlə</button></h2>
+      <div class="list">${g.ids.map(id=>{ const q=byId[id], m=Store.d.mist[id];
+        return `<div class="li"><span class="t">${q.sub} <span class="muted">· ${q.id}</span></span><span class="muted">${m.n} dəfə səhv</span>
+          <button class="btn sm" data-act="reviewOne" data-id="${id}">İşlə</button><button class="btn sm ghost" data-act="rmMist" data-id="${id}" aria-label="Dəftərdən sil">✕</button></div>`; }).join('')}</div>`).join('');
+}
+function helpHTML(){
+  return `<div class="overlay" data-act="closeHelp"><div class="card" role="dialog" aria-label="Klaviatura qısayolları">
+    <h2 style="margin-top:0">Klaviatura qısayolları</h2><table>
+    <tr><td><kbd>1</kbd>–<kbd>5</kbd> və ya <kbd>A</kbd>–<kbd>E</kbd></td><td>Variant seçimi</td></tr>
+    <tr><td><kbd>Enter</kbd></td><td>Təsdiqlə / növbəti sual</td></tr>
+    <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Sınaqda əvvəlki / növbəti sual</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Pəncərəni bağla / ana səhifə (məşqdə)</td></tr>
+    <tr><td><kbd>?</kbd></td><td>Bu siyahı</td></tr></table>
+    <div class="actions"><button class="btn" data-act="closeHelp">Bağla</button></div></div></div>`;
+}
+function render(){
+  document.documentElement.dataset.theme=Store.d.set.theme;
+  const titles={home:'Fiqur Məntiqi', quiz:'', result: S.sess&&S.sess.mode==='exam'?'Sınaq nəticəsi':'Nəticə', mistakes:'Səhv dəftəri'};
+  const head=`<header class="top"><h1>${S.view==='home'?'Fiqur Məntiqi <span class="muted" style="font-weight:400">· məşq platforması</span>':titles[S.view]||'Fiqur Məntiqi'}</h1><span class="sp"></span>
+    ${S.view!=='home'&&S.view!=='quiz'?'<button class="btn sm ghost" data-act="home">Ana səhifə</button>':''}
+    <button class="btn sm ghost" data-act="help" aria-label="Klaviatura qısayolları">⌨ ?</button>
+    <button class="btn sm ghost" data-act="theme" aria-label="Tema">${Store.d.set.theme==='dark'?'☀':'☾'}</button></header>`;
+  const body = S.view==='home'?viewHome(): S.view==='quiz'?viewQuiz(): S.view==='result'?viewResult(): viewMistakes();
+  $app.innerHTML = (S.view==='quiz'? head.replace(/<h1>.*?<\/h1>/,'<h1>Fiqur Məntiqi</h1>') : head) + body + (S.help?helpHTML():'');
+  C3D.mountAll($app);
+}
+
+/* ---------- actions ---------- */
+function pick(d){
+  const s=S.sess, id=s.ids[s.i]; if(!s||s.done[id]) return;
+  if(d<0||d>=s.order[id].length) return;
+  s.sel[id]=d; S.hint=''; render();
+}
+function confirmAnswer(){
+  const s=S.sess, id=s.ids[s.i], q=byId[id];
+  if(s.done[id]) return nextQ();
+  if(s.sel[id]===undefined){ S.hint='Əvvəlcə variant seçin (1–5).'; render(); return; }
+  const ok=s.order[id][s.sel[id]]===q.ans; s.done[id]=true; s.ok[id]=ok;
+  Store.record(id, ok);
+  if(!ok) Store.addMistake(id); else if(s.mode==='review') Store.removeMistake(id);
+  render(); const nb=document.getElementById('nextBtn'); if(nb) nb.focus({preventScroll:true});
+}
+function nextQ(){
+  const s=S.sess;
+  if(s.mode==='exam'){ if(s.i<s.ids.length-1){ s.i++; S.confirm=null; S.hint=''; render(); } else { S.confirm='finish'; render(); } return; }
+  if(s.i<s.ids.length-1){ s.i++; S.hint=''; render(); window.scrollTo(0,0); } else { s.finishedAt=Date.now(); go('result'); }
+}
+function finishExam(timeout){
+  const s=S.sess; if(!s||s.finished) return; s.finished=true; s.finishedAt=Date.now(); s.timeout=!!timeout; stopTimer();
+  s.ids.forEach(id=>{ const q=byId[id], d=s.sel[id];
+    if(d===undefined){ Store.addMistake(id); return; }
+    const ok=s.order[id][d]===q.ans; s.ok[id]=ok; s.done[id]=true; Store.record(id,ok); if(!ok) Store.addMistake(id); });
+  go('result');
+}
+const ACT = {
+  practice: el=>startPractice(el.dataset.cat),
+  exam: ()=>startExam(),
+  restart: ()=>{ const s=S.sess; S.sess=newSession(s.mode, s.ids, s.title); go('quiz'); },
+  home: ()=>{ stopTimer(); S.sess=null; go('home'); },
+  nav: el=>go(el.dataset.v),
+  set: el=>{ const v=el.dataset.v; Store.d.set[el.dataset.k]= isNaN(+v)? v : +v; Store.save(); render(); },
+  toggle: el=>{ Store.d.set[el.dataset.k]=el.checked; Store.save(); },
+  theme: ()=>{ Store.d.set.theme= Store.d.set.theme==='dark'?'light':'dark'; Store.save(); render(); },
+  help: ()=>{ S.help=true; render(); }, closeHelp: ()=>{ S.help=false; render(); },
+  pick: el=>pick(+el.dataset.d),
+  confirm: ()=>confirmAnswer(),
+  next: ()=>{ S.sess.mode==='exam'? nextQ() : confirmAnswer(); },
+  prev: ()=>{ const s=S.sess; if(s.i>0){ s.i--; S.confirm=null; render(); } },
+  jump: el=>{ S.sess.i=+el.dataset.i; S.confirm=null; render(); },
+  askFinish: ()=>{ S.confirm='finish'; render(); }, cancelFinish: ()=>{ S.confirm=null; render(); },
+  finish: ()=>finishExam(false),
+  reviewThese: ()=>{ const s=S.sess; startReview(s.ids.filter(id=>!s.ok[id]), 'Səhvlərin təkrarı'); },
+  reviewAll: ()=>startReview(Object.keys(Store.d.mist).filter(id=>byId[id])),
+  reviewCat: el=>startReview(Object.keys(Store.d.mist).filter(id=>byId[id]&&byId[id].cat===el.dataset.cat), 'Səhv dəftəri · '+CATS[el.dataset.cat].name),
+  reviewOne: el=>startReview([el.dataset.id]),
+  rmMist: el=>{ Store.removeMistake(el.dataset.id); render(); },
+  clearAsk: ()=>{ S.confirm='clear'; render(); }, clearNo: ()=>{ S.confirm=null; render(); },
+  clearYes: ()=>{ Store.d.mist={}; Store.save(); S.confirm=null; go('home'); }
+};
+$app.addEventListener('click', e=>{ const el=e.target.closest('[data-act]'); if(!el||el.tagName==='INPUT') return; if(el.classList.contains('overlay') && e.target!==el) return; const f=ACT[el.dataset.act]; if(f){ f(el); } });
+$app.addEventListener('change', e=>{ const el=e.target.closest('input[data-act]'); if(el&&ACT[el.dataset.act]) ACT[el.dataset.act](el); });
+document.addEventListener('keydown', e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  const k=e.key;
+  if(k==='?'){ S.help=!S.help; render(); return; }
+  if(k==='Escape'){ if(S.help){ S.help=false; render(); } else if(S.confirm){ S.confirm=null; render(); } else if(S.view==='quiz'&&S.sess.mode!=='exam'){ ACT.home(); } return; }
+  if(S.help) return;
+  if(S.view==='quiz'){
+    const s=S.sess, idx='12345'.indexOf(k)>=0 ? +k-1 : 'abcde'.indexOf(k.toLowerCase())>=0 && k.length===1 ? 'abcde'.indexOf(k.toLowerCase()) : -1;
+    if(idx>=0){ e.preventDefault(); pick(idx); return; }
+    if(k==='Enter'){ e.preventDefault();
+      if(s.mode==='exam'){ if(S.confirm==='finish') finishExam(false); else nextQ(); } else confirmAnswer(); return; }
+    if(s.mode==='exam' && k==='ArrowRight'){ e.preventDefault(); if(s.i<s.ids.length-1){ s.i++; S.confirm=null; render(); } return; }
+    if(s.mode==='exam' && k==='ArrowLeft'){ e.preventDefault(); ACT.prev(); return; }
+  }
+});
+
+Store.load();
+const BANK_ERRORS = validateBank(BANK);
+render();
+</script>
+</body>
+</html>
